@@ -29,10 +29,11 @@
         .dataTables_wrapper { padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-top: 20px; }
         table.dataTable thead th { background-color: #1e3a8a; color: white; }
         
-        /* Custom Leaflet Popup */
-        .leaflet-popup-content-wrapper { border-radius: 8px; }
-        .info-window-content { font-size: 14px; color: #333; }
-        .info-window-content h3 { margin: 0 0 8px 0; color: #1e3a8a; font-weight: bold; border-bottom: 2px solid #fbbf24; padding-bottom: 4px; }
+        /* Custom Leaflet Tooltip (Hover Box) */
+        .leaflet-tooltip { border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 0 !important; }
+        .info-window-content { font-size: 13px; color: #333; padding: 12px; }
+        .info-window-content h3 { margin: 0 0 8px 0; color: #1e3a8a; font-weight: bold; border-bottom: 2px solid #fbbf24; padding-bottom: 4px; font-size: 14px;}
+        .leaflet-tooltip-left::before, .leaflet-tooltip-right::before, .leaflet-tooltip-top::before, .leaflet-tooltip-bottom::before { display: none; }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
@@ -45,7 +46,7 @@
                 <p class="text-sm text-blue-200 mt-1">Jabatan Perkhidmatan Veterinar & Pihak Berkuasa Tempatan</p>
             </div>
             <div class="text-right">
-                <span class="bg-yellow-400 text-blue-900 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Status: Siap Siaga</span>
+                <span class="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide border border-white">Status Wabak: Terkawal</span>
             </div>
         </div>
     </header>
@@ -61,6 +62,11 @@
                 
                 <div class="flex flex-col space-y-4 mt-4">
                     <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" id="toggleGroundZero" checked class="form-checkbox h-5 w-5 text-red-700 rounded">
+                        <span class="text-gray-700 font-medium">📍 Ground Zero & Radius (5KM/10KM)</span>
+                    </label>
+
+                    <label class="flex items-center space-x-3 cursor-pointer mt-4 pt-4 border-t">
                         <input type="checkbox" id="toggleRisk" checked class="form-checkbox h-5 w-5 text-orange-500 rounded">
                         <span class="text-gray-700 font-medium">🟠 Laporan Risiko Awam</span>
                     </label>
@@ -72,13 +78,13 @@
 
                     <label class="flex items-center space-x-3 cursor-pointer mt-4 pt-4 border-t">
                         <input type="checkbox" id="toggleRadius" checked class="form-checkbox h-5 w-5 text-yellow-500 rounded">
-                        <span class="text-gray-700 font-medium">⭕ Radius Kawalan 1KM</span>
+                        <span class="text-gray-700 font-medium text-sm">⭕ Radius 1KM (Dari Plot Kawalan)</span>
                     </label>
                 </div>
                 
                 <div class="mt-8 bg-blue-50 p-4 rounded-md border border-blue-100">
                     <h3 class="text-sm font-bold text-blue-800">Tips Penggunaan:</h3>
-                    <p class="text-xs text-gray-600 mt-2">Klik pada ikon lapisan (layer) di penjuru atas kanan peta untuk menukar kepada mod <strong>Peta Satelit</strong>. Klik pada titik (dot) di peta untuk melihat butiran.</p>
+                    <p class="text-xs text-gray-600 mt-2">Halakan tetikus (hover) pada titik di peta untuk melihat maklumat terperinci dengan pantas.</p>
                 </div>
             </div>
 
@@ -98,8 +104,11 @@
 
     <!-- Logik Leaflet & Data -->
     <script>
-        // Setup Peta Leaflet (Pusat di Kedah)
-        var map = L.map('map').setView([6.166, 100.366], 11);
+        // Setup Peta Leaflet (Pusat pada titik Ground Zero yg baru)
+        var gzLat = 6.4309278; // 6°25'51.34"N ditukar ke format perpuluhan
+        var gzLng = 100.4297083; // 100°25'46.95"E ditukar ke format perpuluhan
+        
+        var map = L.map('map').setView([gzLat, gzLng], 12);
 
         // Lapisan Peta Asas (Percuma dari OpenStreetMap & Esri)
         var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -120,45 +129,49 @@
         L.control.layers(baseMaps).addTo(map);
 
         // Kumpulan Lapisan Data (Layer Groups)
+        var groundZeroLayer = L.layerGroup().addTo(map);
         var riskLayer = L.layerGroup().addTo(map);
         var controlLayer = L.layerGroup().addTo(map);
         var radiusLayer = L.layerGroup().addTo(map);
 
-        // Gaya (Style) untuk Titik (Dot) Oren - Laporan Awam
-        var riskDotStyle = {
-            radius: 6, // Saiz kecil
-            fillColor: "#ff8c00", // Oren
-            color: "#ffffff", // Border putih
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.8
-        };
+        // ---------------------------------------------------------
+        // BINA LAPISAN GROUND ZERO (Titik + Radius 5km & 10km)
+        // ---------------------------------------------------------
+        // Titik Ground Zero (pane: 'markerPane' memastikannya sentiasa berada di atas)
+        L.circleMarker([gzLat, gzLng], {
+            radius: 8, fillColor: "#dc2626", color: "#7f1d1d", weight: 3, opacity: 1, fillOpacity: 1, pane: 'markerPane'
+        }).bindTooltip("<div style='padding:5px; font-weight:bold; color:red;'>📍 GROUND ZERO RABIES</div>", {permanent: true, direction: 'right', className: 'bg-transparent border-0 shadow-none'})
+          .addTo(groundZeroLayer);
 
-        // Gaya (Style) untuk Titik (Dot) Hijau Cerah - Aktiviti Kawalan
-        var controlDotStyle = {
-            radius: 10, // Saiz lebih besar
-            fillColor: "#00ff00", // Hijau cerah (Lime)
-            color: "#006400", // Border hijau gelap
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.9
-        };
+        // Radius 5KM (Merah / Zon Infeksi)
+        L.circle([gzLat, gzLng], {
+            color: '#ef4444', fillColor: '#fee2e2', fillOpacity: 0.15, weight: 2, dashArray: '5, 5', radius: 5000
+        }).bindTooltip("<b>Zon Infeksi / Jangkitan (5 KM)</b>").addTo(groundZeroLayer);
+
+        // Radius 10KM (Oren / Zon Pengawasan)
+        L.circle([gzLat, gzLng], {
+            color: '#f97316', fillColor: '#ffedd5', fillOpacity: 0.1, weight: 2, dashArray: '8, 8', radius: 10000
+        }).bindTooltip("<b>Zon Pengawasan (10 KM)</b>").addTo(groundZeroLayer);
+
 
         // ---------------------------------------------------------
-        // URL GOOGLE SHEETS
+        // GAYA TITIK & TETAPAN URL
         // ---------------------------------------------------------
+        // Penambahan pane: 'markerPane' memaksa dot dilukis di atas semua bulatan radius
+        var riskDotStyle = { radius: 6, fillColor: "#ff8c00", color: "#ffffff", weight: 2, opacity: 1, fillOpacity: 0.9, pane: 'markerPane' };
+        var controlDotStyle = { radius: 9, fillColor: "#00ff00", color: "#006400", weight: 2, opacity: 1, fillOpacity: 0.9, pane: 'markerPane' };
+
         const riskDataUrl = 'https://docs.google.com/spreadsheets/d/10CQIZ8XlP0SvDq9cwAGRf5hVMfLHd4LDi_PpIqBDsPs/export?format=csv&gid=0';
         const controlDataUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=1524998352';
 
-        // ---------------------------------------------------------
-        // TETAPAN KOLUM
-        // ---------------------------------------------------------
         const riskLatIndex = 3; 
         const riskLngIndex = 4; 
-        const controlLatIndex = 4; // Kolum E
-        const controlLngIndex = 5; // Kolum F
+        const controlLatIndex = 4; 
+        const controlLngIndex = 5; 
 
-        // Tarik Data Risiko (Awam)
+        // ---------------------------------------------------------
+        // BACA DATA RISIKO (LAPORAN AWAM)
+        // ---------------------------------------------------------
         Papa.parse(riskDataUrl, {
             download: true, header: false, skipEmptyLines: true,
             complete: function(results) {
@@ -167,16 +180,28 @@
                     let lng = parseFloat(results.data[i][riskLngIndex]);
                     
                     if (!isNaN(lat) && !isNaN(lng)) {
-                        // Gunakan L.circleMarker untuk Dot Oren
+                        
+                        // Isi Kandungan Hover (Index 0 = Col A, Index 1 = Col B)
+                        let popupContent = `
+                            <div class="info-window-content">
+                                <h3>Laporan Awam Risiko</h3>
+                                <strong>Nama Pengadu:</strong> ${results.data[i][0] || 'Tiada Maklumat'}<br>
+                                <strong>No. Telefon:</strong> ${results.data[i][1] || 'Tiada Maklumat'}
+                            </div>
+                        `;
+
+                        // Tambah pada Peta dengan bindTooltip
                         L.circleMarker([lat, lng], riskDotStyle)
-                         .bindPopup("<b>Laporan Awam Risiko</b>")
+                         .bindTooltip(popupContent, {direction: 'top'})
                          .addTo(riskLayer);
                     }
                 }
             }
         });
 
-        // Tarik Data Kawalan & Bina Jadual (DVS)
+        // ---------------------------------------------------------
+        // BACA DATA AKTIVITI KAWALAN (DVS)
+        // ---------------------------------------------------------
         Papa.parse(controlDataUrl, {
             download: true, header: true, skipEmptyLines: true,
             complete: function(results) {
@@ -184,33 +209,35 @@
                 let headers = results.meta.fields;
 
                 results.data.forEach((row) => {
-                    let rowArray = Object.values(row);
+                    // Tukar object ke array supaya lebih mudah dipanggil by index
+                    let rowArray = Object.values(row); 
                     tableDataSet.push(rowArray);
 
                     let lat = parseFloat(rowArray[controlLatIndex]);
                     let lng = parseFloat(rowArray[controlLngIndex]);
 
                     if (!isNaN(lat) && !isNaN(lng)) {
+                        
+                        // Isi Kandungan Hover (Tarikh=B/1, Aktiviti=G/6, Tangkapan=H/7, Sample=I/8)
                         let popupContent = `
                             <div class="info-window-content">
-                                <h3>Aktiviti Kawalan</h3>
-                                <strong>Tarikh:</strong> ${rowArray[0] || 'N/A'}<br>
-                                <strong>Maklumat:</strong> ${rowArray[1] || 'N/A'}<br>
-                                <strong>Lokasi:</strong> ${rowArray[2] || 'N/A'}
+                                <h3>Aktiviti Kawalan (DVS/PBT)</h3>
+                                <strong>Tarikh:</strong> ${rowArray[1] || 'N/A'}<br>
+                                <strong>Aktiviti:</strong> ${rowArray[6] || 'N/A'}<br>
+                                <strong>Bil. Tangkapan:</strong> <span style="color:#b91c1c; font-weight:bold;">${rowArray[7] || '0'} ekor</span><br>
+                                <strong>Bil. Sampel:</strong> <span style="color:#0369a1; font-weight:bold;">${rowArray[8] || '0'} sampel</span>
                             </div>
                         `;
 
-                        // Gunakan L.circleMarker untuk Dot Hijau
+                        // Tambah pada Peta
                         L.circleMarker([lat, lng], controlDotStyle)
-                         .bindPopup(popupContent)
+                         .bindTooltip(popupContent, {direction: 'top'})
                          .addTo(controlLayer);
 
                         // Tambah Bulatan Radius 1KM
+                        // interactive: false ditambah di sini supaya klik/hover tembus radius kuning kepada titik hijau
                         L.circle([lat, lng], {
-                            color: '#eab308',
-                            fillColor: '#fef08a',
-                            fillOpacity: 0.35,
-                            radius: 1000 // 1000 meter = 1KM
+                            color: '#eab308', fillColor: '#fef08a', fillOpacity: 0.2, radius: 1000, interactive: false 
                         }).addTo(radiusLayer);
                     }
                 });
@@ -222,6 +249,7 @@
                     columns: tableHeaders,
                     scrollX: true,
                     pageLength: 10,
+                    order: [[1, 'desc']], // Automatik susun Tarikh (Col B) dari terkini
                     language: {
                         search: "Carian Pantas:", lengthMenu: "Papar _MENU_ rekod",
                         info: "Memaparkan _START_ hingga _END_ dari _TOTAL_ rekod",
@@ -232,7 +260,12 @@
             }
         });
 
-        // Logik Buka/Tutup Lapisan (Checkbox)
+        // ---------------------------------------------------------
+        // LOGIK BUKA/TUTUP LAPISAN (CHECKBOX)
+        // ---------------------------------------------------------
+        document.getElementById('toggleGroundZero').addEventListener('change', function() {
+            this.checked ? map.addLayer(groundZeroLayer) : map.removeLayer(groundZeroLayer);
+        });
         document.getElementById('toggleRisk').addEventListener('change', function() {
             this.checked ? map.addLayer(riskLayer) : map.removeLayer(riskLayer);
         });
