@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Aduan Awam dan Aktiviti Kawalan Rabies DVS & PBT</title>
+    <title>Dashboard Pusat Operasi & Surveilan Rabies - DVS & PBT</title>
     
     <!-- Tailwind CSS (Untuk Rekabentuk Profesional) -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,6 +19,9 @@
     <!-- LEAFLET CSS & JS (100% Percuma) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Chart.js (Untuk Pie Chart) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Font Asas Rasmi -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -42,11 +45,12 @@
     <header class="bg-blue-900 text-white shadow-md relative z-10">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <div>
-                <h1 class="text-2xl font-bold tracking-wider">DASHBOARD ADUAN AWAM & KAWALAN RABIES</h1>
-                <p class="text-sm text-blue-200 mt-1">Jabatan Perkhidmatan Veterinar Negeri Kedah & Majlis Perbandaran Kubang Pasu</p>
+                <h1 class="text-2xl font-bold tracking-wider">DASHBOARD SURVEILAN & KAWALAN RABIES</h1>
+                <p class="text-sm text-blue-200 mt-1">Jabatan Perkhidmatan Veterinar & Pihak Berkuasa Tempatan</p>
             </div>
             <div class="text-right">
                 <span class="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide border border-white">Status Wabak: Terkawal</span>
+                <p id="lastUpdatedDate" class="text-xs text-blue-200 mt-2 font-medium">Tarikh Kemaskini: Menyemak data...</p>
             </div>
         </div>
     </header>
@@ -76,21 +80,63 @@
                         <span class="text-gray-700 font-medium">🟢 Aktiviti Kawalan (DVS/PBT)</span>
                     </label>
 
+                    <!-- Radius Checkbox -->
                     <label class="flex items-center space-x-3 cursor-pointer mt-4 pt-4 border-t">
                         <input type="checkbox" id="toggleRadius" checked class="form-checkbox h-5 w-5 text-yellow-500 rounded">
-                        <span class="text-gray-700 font-medium text-sm">⭕ Radius 1KM (Dari Plot Kawalan)</span>
+                        <span class="text-gray-700 font-medium text-sm">⭕ Radius Kawalan (Aktiviti)</span>
                     </label>
+
+                    <!-- Slider Pelaras Radius -->
+                    <div class="mt-2 pl-8">
+                        <label for="radiusSlider" class="block text-xs font-bold text-gray-700 mb-2">Saiz Radius: <span id="radiusValue" class="text-blue-600">500</span> Meter</label>
+                        <input type="range" id="radiusSlider" min="100" max="5000" step="100" value="500" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-yellow-500">
+                        <div class="flex justify-between text-[10px] text-gray-500 mt-1 font-semibold">
+                            <span>100m</span>
+                            <span>5km</span>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="mt-8 bg-blue-50 p-4 rounded-md border border-blue-100">
                     <h3 class="text-sm font-bold text-blue-800">Tips Penggunaan:</h3>
-                    <p class="text-xs text-gray-600 mt-2">Halakan tetikus (hover) pada titik di peta untuk melihat maklumat terperinci dengan pantas.</p>
+                    <p class="text-xs text-gray-600 mt-2">Gerakkan pelaras di atas untuk melihat anggaran zon liputan bagi setiap titik operasi. Halakan tetikus pada titik untuk butiran lanjut.</p>
                 </div>
             </div>
 
             <!-- Peta Leaflet -->
             <div class="lg:col-span-3">
                 <div id="map"></div>
+            </div>
+        </div>
+
+        <!-- RINGKASAN SCORE CARD & PIE CHART -->
+        <div class="mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Ringkasan Aktiviti Kawalan</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <!-- Card 1 -->
+                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+                    <p class="text-sm text-gray-500 font-semibold uppercase">Jumlah Operasi / Aktiviti</p>
+                    <p class="text-4xl font-bold text-gray-800 mt-2" id="scoreActivities">0</p>
+                </div>
+                <!-- Card 2 -->
+                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-500">
+                    <p class="text-sm text-gray-500 font-semibold uppercase">Jumlah Tangkapan Haiwan</p>
+                    <p class="text-4xl font-bold text-gray-800 mt-2" id="scoreCaptures">0</p>
+                </div>
+                <!-- Card 3 -->
+                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
+                    <p class="text-sm text-gray-500 font-semibold uppercase">Sampel Positif Rabies</p>
+                    <p class="text-4xl font-bold text-gray-800 mt-2" id="scorePositive">0</p>
+                </div>
+            </div>
+
+            <!-- Pie Chart -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-md font-bold text-gray-700 mb-4 text-center">Pecahan Mengikut Jenis Aktiviti Kawalan</h3>
+                <div class="relative w-full flex justify-center" style="height: 300px;">
+                    <canvas id="activityPieChart"></canvas>
+                </div>
             </div>
         </div>
 
@@ -104,121 +150,108 @@
 
     <!-- Logik Leaflet & Data -->
     <script>
-        // Setup Peta Leaflet (Pusat pada titik Ground Zero yg baru)
-        var gzLat = 6.4309278; // 6°25'51.34"N ditukar ke format perpuluhan
-        var gzLng = 100.4297083; // 100°25'46.95"E ditukar ke format perpuluhan
+        // Setup Peta Leaflet
+        var gzLat = 6.4309278; 
+        var gzLng = 100.4297083; 
         
         var map = L.map('map').setView([gzLat, gzLng], 12);
 
-        // Lapisan Peta Asas (Percuma dari OpenStreetMap & Esri)
-        var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        });
-        
-        var satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles &copy; Esri'
-        });
+        // Lapisan Peta Asas
+        var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' });
+        var satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri' });
 
-        osmLayer.addTo(map); // Peta lalai (default)
+        osmLayer.addTo(map); 
+        L.control.layers({"Peta Jalan (OSM)": osmLayer, "Peta Satelit (Esri)": satelliteLayer}).addTo(map);
 
-        // Menu tukar peta di kanan atas
-        var baseMaps = {
-            "Peta Jalan (OSM)": osmLayer,
-            "Peta Satelit (Esri)": satelliteLayer
-        };
-        L.control.layers(baseMaps).addTo(map);
-
-        // Kumpulan Lapisan Data (Layer Groups)
         var groundZeroLayer = L.layerGroup().addTo(map);
         var riskLayer = L.layerGroup().addTo(map);
         var controlLayer = L.layerGroup().addTo(map);
         var radiusLayer = L.layerGroup().addTo(map);
 
-        // ---------------------------------------------------------
-        // BINA LAPISAN GROUND ZERO (Titik + Radius 5km & 10km)
-        // ---------------------------------------------------------
-        // Titik Ground Zero (pane: 'markerPane' memastikannya sentiasa berada di atas)
+        var dynamicControlCircles = [];
+
+        // Ground Zero & Radius (5KM / 10KM)
         L.circleMarker([gzLat, gzLng], {
             radius: 8, fillColor: "#dc2626", color: "#7f1d1d", weight: 3, opacity: 1, fillOpacity: 1, pane: 'markerPane'
         }).bindTooltip("<div style='padding:5px; font-weight:bold; color:red;'>📍 GROUND ZERO RABIES</div>", {permanent: true, direction: 'right', className: 'bg-transparent border-0 shadow-none'})
           .addTo(groundZeroLayer);
 
-        // Radius 5KM (Merah / Zon Infeksi)
-        L.circle([gzLat, gzLng], {
-            color: '#ef4444', fillColor: '#fee2e2', fillOpacity: 0.15, weight: 2, dashArray: '5, 5', radius: 5000
-        }).bindTooltip("<b>Zon Infeksi / Jangkitan (5 KM)</b>").addTo(groundZeroLayer);
+        L.circle([gzLat, gzLng], { color: '#ef4444', fillColor: '#fee2e2', fillOpacity: 0.15, weight: 2, dashArray: '5, 5', radius: 5000 }).bindTooltip("<b> </b>").addTo(groundZeroLayer);
+        L.circle([gzLat, gzLng], { color: '#f97316', fillColor: '#ffedd5', fillOpacity: 0.1, weight: 2, dashArray: '8, 8', radius: 10000 }).bindTooltip("<b> </b>").addTo(groundZeroLayer);
 
-        // Radius 10KM (Oren / Zon Pengawasan)
-        L.circle([gzLat, gzLng], {
-            color: '#f97316', fillColor: '#ffedd5', fillOpacity: 0.1, weight: 2, dashArray: '8, 8', radius: 10000
-        }).bindTooltip("<b>Zon Pengawasan (10 KM)</b>").addTo(groundZeroLayer);
-
-
-        // ---------------------------------------------------------
-        // GAYA TITIK & TETAPAN URL
-        // ---------------------------------------------------------
-        // Penambahan pane: 'markerPane' memaksa dot dilukis di atas semua bulatan radius
-        var riskDotStyle = { radius: 6, fillColor: "#ff8c00", color: "#ffffff", weight: 2, opacity: 1, fillOpacity: 0.9, pane: 'markerPane' };
-        var controlDotStyle = { radius: 9, fillColor: "#00ff00", color: "#006400", weight: 2, opacity: 1, fillOpacity: 0.9, pane: 'markerPane' };
-
+        // URL GOOGLE SHEETS
         const riskDataUrl = 'https://docs.google.com/spreadsheets/d/10CQIZ8XlP0SvDq9cwAGRf5hVMfLHd4LDi_PpIqBDsPs/export?format=csv&gid=0';
         const controlDataUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=1524998352';
 
-        const riskLatIndex = 3; 
-        const riskLngIndex = 4; 
-        const controlLatIndex = 4; 
-        const controlLngIndex = 5; 
+        const riskLatIndex = 3, riskLngIndex = 4; 
+        const controlLatIndex = 4, controlLngIndex = 5, controlPosIndex = 10; // K=10
 
-        // ---------------------------------------------------------
-        // BACA DATA RISIKO (LAPORAN AWAM)
-        // ---------------------------------------------------------
+        var riskDotStyle = { radius: 6, fillColor: "#ff8c00", color: "#ffffff", weight: 2, opacity: 1, fillOpacity: 0.9, pane: 'markerPane' };
+        var controlDotStyle = { radius: 9, fillColor: "#00ff00", color: "#006400", weight: 2, opacity: 1, fillOpacity: 0.9, pane: 'markerPane' };
+
+        // 1. Tarik Data Risiko (Awam)
         Papa.parse(riskDataUrl, {
             download: true, header: false, skipEmptyLines: true,
             complete: function(results) {
                 for (let i = 1; i < results.data.length; i++) {
                     let lat = parseFloat(results.data[i][riskLatIndex]);
                     let lng = parseFloat(results.data[i][riskLngIndex]);
-                    
                     if (!isNaN(lat) && !isNaN(lng)) {
-                        
-                        // Isi Kandungan Hover (Index 0 = Col A, Index 1 = Col B)
                         let popupContent = `
                             <div class="info-window-content">
                                 <h3>Laporan Awam Risiko</h3>
                                 <strong>Nama Pengadu:</strong> ${results.data[i][0] || 'Tiada Maklumat'}<br>
                                 <strong>No. Telefon:</strong> ${results.data[i][1] || 'Tiada Maklumat'}
-                            </div>
-                        `;
-
-                        // Tambah pada Peta dengan bindTooltip
-                        L.circleMarker([lat, lng], riskDotStyle)
-                         .bindTooltip(popupContent, {direction: 'top'})
-                         .addTo(riskLayer);
+                            </div>`;
+                        L.circleMarker([lat, lng], riskDotStyle).bindTooltip(popupContent, {direction: 'top'}).addTo(riskLayer);
                     }
                 }
             }
         });
 
-        // ---------------------------------------------------------
-        // BACA DATA AKTIVITI KAWALAN (DVS)
-        // ---------------------------------------------------------
+        // 2. Tarik Data Kawalan & Proses Metrik
         Papa.parse(controlDataUrl, {
             download: true, header: true, skipEmptyLines: true,
             complete: function(results) {
                 let tableDataSet = [];
                 let headers = results.meta.fields;
 
+                let totalActivities = 0;
+                let totalCaptures = 0;
+                let totalPositive = 0;
+                let activityTypesCount = {};
+                
+                let latestDateString = "Tiada Maklumat";
+                
+                let initialRadius = parseInt(document.getElementById('radiusSlider').value);
+
                 results.data.forEach((row) => {
-                    // Tukar object ke array supaya lebih mudah dipanggil by index
                     let rowArray = Object.values(row); 
                     tableDataSet.push(rowArray);
 
+                    let dateStr = rowArray[1]; // Kolum B (Tarikh)
+                    
+                    if(dateStr && dateStr.trim() !== "") {
+                        totalActivities++;
+                        
+                        let captures = parseInt(rowArray[7]) || 0; 
+                        let positive = parseInt(rowArray[controlPosIndex]) || 0; 
+                        
+                        totalCaptures += captures;
+                        totalPositive += positive;
+
+                        let actType = rowArray[6] ? rowArray[6].trim() : "Lain-lain / Tidak Dinyatakan";
+                        activityTypesCount[actType] = (activityTypesCount[actType] || 0) + 1;
+
+                        // Mengambil terus data tertulis dari baris terakhir tanpa mengira formatnya
+                        latestDateString = dateStr.trim();
+                    }
+
+                    // Plot ke Peta
                     let lat = parseFloat(rowArray[controlLatIndex]);
                     let lng = parseFloat(rowArray[controlLngIndex]);
 
                     if (!isNaN(lat) && !isNaN(lng)) {
-                        
-                        // Isi Kandungan Hover (Tarikh=B/1, Aktiviti=G/6, Tangkapan=H/7, Sample=I/8)
                         let popupContent = `
                             <div class="info-window-content">
                                 <h3>Aktiviti Kawalan (DVS/PBT)</h3>
@@ -226,20 +259,38 @@
                                 <strong>Aktiviti:</strong> ${rowArray[6] || 'N/A'}<br>
                                 <strong>Bil. Tangkapan:</strong> <span style="color:#b91c1c; font-weight:bold;">${rowArray[7] || '0'} ekor</span><br>
                                 <strong>Bil. Sampel:</strong> <span style="color:#0369a1; font-weight:bold;">${rowArray[8] || '0'} sampel</span>
-                            </div>
-                        `;
+                            </div>`;
 
-                        // Tambah pada Peta
-                        L.circleMarker([lat, lng], controlDotStyle)
-                         .bindTooltip(popupContent, {direction: 'top'})
-                         .addTo(controlLayer);
-
-                        // Tambah Bulatan Radius 1KM
-                        // interactive: false ditambah di sini supaya klik/hover tembus radius kuning kepada titik hijau
-                        L.circle([lat, lng], {
-                            color: '#eab308', fillColor: '#fef08a', fillOpacity: 0.2, radius: 1000, interactive: false 
-                        }).addTo(radiusLayer);
+                        L.circleMarker([lat, lng], controlDotStyle).bindTooltip(popupContent, {direction: 'top'}).addTo(controlLayer);
+                        
+                        let dynamicCircle = L.circle([lat, lng], { 
+                            color: '#eab308', fillColor: '#fef08a', fillOpacity: 0.2, radius: initialRadius, interactive: false 
+                        });
+                        dynamicCircle.addTo(radiusLayer);
+                        
+                        dynamicControlCircles.push(dynamicCircle);
                     }
+                });
+
+                // UPDATE UI DOM
+                document.getElementById('scoreActivities').innerText = totalActivities;
+                document.getElementById('scoreCaptures').innerText = totalCaptures;
+                document.getElementById('scorePositive').innerText = totalPositive;
+                document.getElementById('lastUpdatedDate').innerText = "Tarikh Kemaskini: " + latestDateString;
+
+                // JANA PIE CHART
+                let ctx = document.getElementById('activityPieChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: Object.keys(activityTypesCount),
+                        datasets: [{
+                            data: Object.values(activityTypesCount),
+                            backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6b7280'],
+                            borderWidth: 1, borderColor: '#ffffff'
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { family: 'Inter' } } } } }
                 });
 
                 // Bina Jadual DataTables
@@ -249,7 +300,7 @@
                     columns: tableHeaders,
                     scrollX: true,
                     pageLength: 10,
-                    order: [[1, 'desc']], // Automatik susun Tarikh (Col B) dari terkini
+                    order: [[1, 'desc']], 
                     language: {
                         search: "Carian Pantas:", lengthMenu: "Papar _MENU_ rekod",
                         info: "Memaparkan _START_ hingga _END_ dari _TOTAL_ rekod",
@@ -261,19 +312,20 @@
         });
 
         // ---------------------------------------------------------
-        // LOGIK BUKA/TUTUP LAPISAN (CHECKBOX)
+        // LOGIK EVENT LISTENER (CHECKBOX & SLIDER)
         // ---------------------------------------------------------
-        document.getElementById('toggleGroundZero').addEventListener('change', function() {
-            this.checked ? map.addLayer(groundZeroLayer) : map.removeLayer(groundZeroLayer);
-        });
-        document.getElementById('toggleRisk').addEventListener('change', function() {
-            this.checked ? map.addLayer(riskLayer) : map.removeLayer(riskLayer);
-        });
-        document.getElementById('toggleControl').addEventListener('change', function() {
-            this.checked ? map.addLayer(controlLayer) : map.removeLayer(controlLayer);
-        });
-        document.getElementById('toggleRadius').addEventListener('change', function() {
-            this.checked ? map.addLayer(radiusLayer) : map.removeLayer(radiusLayer);
+        document.getElementById('toggleGroundZero').addEventListener('change', function() { this.checked ? map.addLayer(groundZeroLayer) : map.removeLayer(groundZeroLayer); });
+        document.getElementById('toggleRisk').addEventListener('change', function() { this.checked ? map.addLayer(riskLayer) : map.removeLayer(riskLayer); });
+        document.getElementById('toggleControl').addEventListener('change', function() { this.checked ? map.addLayer(controlLayer) : map.removeLayer(controlLayer); });
+        document.getElementById('toggleRadius').addEventListener('change', function() { this.checked ? map.addLayer(radiusLayer) : map.removeLayer(radiusLayer); });
+        
+        document.getElementById('radiusSlider').addEventListener('input', function() {
+            let newRadius = parseInt(this.value);
+            document.getElementById('radiusValue').innerText = newRadius;
+            
+            dynamicControlCircles.forEach(function(circle) {
+                circle.setRadius(newRadius);
+            });
         });
 
     </script>
