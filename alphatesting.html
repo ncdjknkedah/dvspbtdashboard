@@ -50,7 +50,6 @@
             </div>
             <div class="text-right">
                 <span class="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide border border-white">Status Wabak: Terkawal</span>
-                <!-- Tarikh Kemaskini Ditambah Di Sini -->
                 <p id="lastUpdatedDate" class="text-xs text-blue-200 mt-2 font-medium">Tarikh Kemaskini: Menyemak data...</p>
             </div>
         </div>
@@ -81,15 +80,26 @@
                         <span class="text-gray-700 font-medium">🟢 Aktiviti Kawalan (DVS/PBT)</span>
                     </label>
 
+                    <!-- Radius Checkbox -->
                     <label class="flex items-center space-x-3 cursor-pointer mt-4 pt-4 border-t">
                         <input type="checkbox" id="toggleRadius" checked class="form-checkbox h-5 w-5 text-yellow-500 rounded">
-                        <span class="text-gray-700 font-medium text-sm">⭕ Radius 1KM (Dari Plot Kawalan)</span>
+                        <span class="text-gray-700 font-medium text-sm">⭕ Radius Kawalan (Aktiviti)</span>
                     </label>
+
+                    <!-- Slider Pelaras Radius -->
+                    <div class="mt-2 pl-8">
+                        <label for="radiusSlider" class="block text-xs font-bold text-gray-700 mb-2">Saiz Radius: <span id="radiusValue" class="text-blue-600">500</span> Meter</label>
+                        <input type="range" id="radiusSlider" min="100" max="5000" step="100" value="500" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-yellow-500">
+                        <div class="flex justify-between text-[10px] text-gray-500 mt-1 font-semibold">
+                            <span>100m</span>
+                            <span>5km</span>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="mt-8 bg-blue-50 p-4 rounded-md border border-blue-100">
                     <h3 class="text-sm font-bold text-blue-800">Tips Penggunaan:</h3>
-                    <p class="text-xs text-gray-600 mt-2">Halakan tetikus (hover) pada titik di peta untuk melihat maklumat terperinci dengan pantas.</p>
+                    <p class="text-xs text-gray-600 mt-2">Gerakkan pelaras di atas untuk melihat anggaran zon liputan bagi setiap titik operasi. Halakan tetikus pada titik untuk butiran lanjut.</p>
                 </div>
             </div>
 
@@ -99,29 +109,29 @@
             </div>
         </div>
 
-        <!-- 🔴 BAHAGIAN BARU: RINGKASAN SCORE CARD & PIE CHART 🔴 -->
+        <!-- RINGKASAN SCORE CARD & PIE CHART -->
         <div class="mb-8">
             <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Ringkasan Aktiviti Kawalan</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <!-- Card 1: Jumlah Aktiviti -->
+                <!-- Card 1 -->
                 <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
                     <p class="text-sm text-gray-500 font-semibold uppercase">Jumlah Operasi / Aktiviti</p>
                     <p class="text-4xl font-bold text-gray-800 mt-2" id="scoreActivities">0</p>
                 </div>
-                <!-- Card 2: Jumlah Tangkapan -->
+                <!-- Card 2 -->
                 <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-500">
                     <p class="text-sm text-gray-500 font-semibold uppercase">Jumlah Tangkapan Haiwan</p>
                     <p class="text-4xl font-bold text-gray-800 mt-2" id="scoreCaptures">0</p>
                 </div>
-                <!-- Card 3: Sampel Positif -->
+                <!-- Card 3 -->
                 <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
                     <p class="text-sm text-gray-500 font-semibold uppercase">Sampel Positif Rabies</p>
                     <p class="text-4xl font-bold text-gray-800 mt-2" id="scorePositive">0</p>
                 </div>
             </div>
 
-            <!-- Pie Chart Container -->
+            <!-- Pie Chart -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h3 class="text-md font-bold text-gray-700 mb-4 text-center">Pecahan Mengikut Jenis Aktiviti Kawalan</h3>
                 <div class="relative w-full flex justify-center" style="height: 300px;">
@@ -158,7 +168,10 @@
         var controlLayer = L.layerGroup().addTo(map);
         var radiusLayer = L.layerGroup().addTo(map);
 
-        // Ground Zero & Radius
+        // Array untuk menyimpan rekod bulatan radius supaya boleh diubah (real-time)
+        var dynamicControlCircles = [];
+
+        // Ground Zero & Radius (5KM / 10KM)
         L.circleMarker([gzLat, gzLng], {
             radius: 8, fillColor: "#dc2626", color: "#7f1d1d", weight: 3, opacity: 1, fillOpacity: 1, pane: 'markerPane'
         }).bindTooltip("<div style='padding:5px; font-weight:bold; color:red;'>📍 GROUND ZERO RABIES</div>", {permanent: true, direction: 'right', className: 'bg-transparent border-0 shadow-none'})
@@ -204,7 +217,6 @@
                 let tableDataSet = [];
                 let headers = results.meta.fields;
 
-                // Pembolehubah untuk Dashboard Metrik
                 let totalActivities = 0;
                 let totalCaptures = 0;
                 let totalPositive = 0;
@@ -212,6 +224,9 @@
                 
                 let maxTimestamp = 0;
                 let latestDateString = "";
+                
+                // Ambil nilai radius semasa dari Slider UI (Lalai = 500)
+                let initialRadius = parseInt(document.getElementById('radiusSlider').value);
 
                 results.data.forEach((row) => {
                     let rowArray = Object.values(row); 
@@ -219,26 +234,23 @@
 
                     let dateStr = rowArray[1]; // Kolum B (Tarikh)
                     
-                    // Kira Metrik Score Cards Jika Ada Tarikh
                     if(dateStr) {
                         totalActivities++;
                         
-                        let captures = parseInt(rowArray[7]) || 0; // Kolum H
-                        let positive = parseInt(rowArray[controlPosIndex]) || 0; // Kolum K
+                        let captures = parseInt(rowArray[7]) || 0; 
+                        let positive = parseInt(rowArray[controlPosIndex]) || 0; 
                         
                         totalCaptures += captures;
                         totalPositive += positive;
 
-                        // Kira Pecahan Jenis Aktiviti (Kolum G)
                         let actType = rowArray[6] ? rowArray[6].trim() : "Lain-lain / Tidak Dinyatakan";
                         activityTypesCount[actType] = (activityTypesCount[actType] || 0) + 1;
 
-                        // Cari Tarikh Terkini
                         let parts = dateStr.split(/[\/\-]/);
                         let timestamp = 0;
                         if(parts.length === 3) {
-                            if(parts[0].length === 4) timestamp = new Date(dateStr).getTime(); // YYYY-MM-DD
-                            else timestamp = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`).getTime(); // DD/MM/YYYY ke format standard
+                            if(parts[0].length === 4) timestamp = new Date(dateStr).getTime(); 
+                            else timestamp = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`).getTime(); 
                         } else {
                             timestamp = new Date(dateStr).getTime();
                         }
@@ -264,11 +276,19 @@
                             </div>`;
 
                         L.circleMarker([lat, lng], controlDotStyle).bindTooltip(popupContent, {direction: 'top'}).addTo(controlLayer);
-                        L.circle([lat, lng], { color: '#eab308', fillColor: '#fef08a', fillOpacity: 0.2, radius: 1000, interactive: false }).addTo(radiusLayer);
+                        
+                        // Cipta Bulatan Radius Dinamik
+                        let dynamicCircle = L.circle([lat, lng], { 
+                            color: '#eab308', fillColor: '#fef08a', fillOpacity: 0.2, radius: initialRadius, interactive: false 
+                        });
+                        dynamicCircle.addTo(radiusLayer);
+                        
+                        // Simpan ke dalam array supaya ia boleh diubah oleh slider
+                        dynamicControlCircles.push(dynamicCircle);
                     }
                 });
 
-                // UPDATE UI DOM (Scorecards & Date)
+                // UPDATE UI DOM
                 document.getElementById('scoreActivities').innerText = totalActivities;
                 document.getElementById('scoreCaptures').innerText = totalCaptures;
                 document.getElementById('scorePositive').innerText = totalPositive;
@@ -282,26 +302,11 @@
                         labels: Object.keys(activityTypesCount),
                         datasets: [{
                             data: Object.values(activityTypesCount),
-                            backgroundColor: [
-                                '#3b82f6', // Biru
-                                '#10b981', // Hijau
-                                '#f59e0b', // Kuning/Oren
-                                '#ef4444', // Merah
-                                '#8b5cf6', // Ungu
-                                '#ec4899', // Pink
-                                '#6b7280'  // Kelabu
-                            ],
-                            borderWidth: 1,
-                            borderColor: '#ffffff'
+                            backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6b7280'],
+                            borderWidth: 1, borderColor: '#ffffff'
                         }]
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { position: 'right', labels: { font: { family: 'Inter' } } }
-                        }
-                    }
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { family: 'Inter' } } } } }
                 });
 
                 // Bina Jadual DataTables
@@ -311,7 +316,7 @@
                     columns: tableHeaders,
                     scrollX: true,
                     pageLength: 10,
-                    order: [[1, 'desc']], // Susun Tarikh (Col B) dari terkini
+                    order: [[1, 'desc']], 
                     language: {
                         search: "Carian Pantas:", lengthMenu: "Papar _MENU_ rekod",
                         info: "Memaparkan _START_ hingga _END_ dari _TOTAL_ rekod",
@@ -322,11 +327,24 @@
             }
         });
 
-        // Logik Buka/Tutup Lapisan (Checkbox)
+        // ---------------------------------------------------------
+        // LOGIK EVENT LISTENER (CHECKBOX & SLIDER)
+        // ---------------------------------------------------------
         document.getElementById('toggleGroundZero').addEventListener('change', function() { this.checked ? map.addLayer(groundZeroLayer) : map.removeLayer(groundZeroLayer); });
         document.getElementById('toggleRisk').addEventListener('change', function() { this.checked ? map.addLayer(riskLayer) : map.removeLayer(riskLayer); });
         document.getElementById('toggleControl').addEventListener('change', function() { this.checked ? map.addLayer(controlLayer) : map.removeLayer(controlLayer); });
         document.getElementById('toggleRadius').addEventListener('change', function() { this.checked ? map.addLayer(radiusLayer) : map.removeLayer(radiusLayer); });
+        
+        // Logik Perubahan Radius secara langsung (Live Update)
+        document.getElementById('radiusSlider').addEventListener('input', function() {
+            let newRadius = parseInt(this.value);
+            document.getElementById('radiusValue').innerText = newRadius;
+            
+            // Lakukan gelung (loop) untuk kemaskini saiz setiap bulatan radius kawalan
+            dynamicControlCircles.forEach(function(circle) {
+                circle.setRadius(newRadius);
+            });
+        });
 
     </script>
 </body>
