@@ -176,8 +176,8 @@
         }).bindTooltip("<div style='padding:5px; font-weight:bold; color:red;'>📍 GROUND ZERO RABIES</div>", {permanent: true, direction: 'right', className: 'bg-transparent border-0 shadow-none'})
           .addTo(groundZeroLayer);
 
-        L.circle([gzLat, gzLng], { color: '#ef4444', fillColor: '#fee2e2', fillOpacity: 0.15, weight: 2, dashArray: '5, 5', radius: 5000 }).bindTooltip("<b>Zon Infeksi / Jangkitan (5 KM)</b>").addTo(groundZeroLayer);
-        L.circle([gzLat, gzLng], { color: '#f97316', fillColor: '#ffedd5', fillOpacity: 0.1, weight: 2, dashArray: '8, 8', radius: 10000 }).bindTooltip("<b>Zon Pengawasan (10 KM)</b>").addTo(groundZeroLayer);
+        L.circle([gzLat, gzLng], { color: '#ef4444', fillColor: '#fee2e2', fillOpacity: 0.15, weight: 2, dashArray: '5, 5', radius: 5000 }).bindTooltip("<b> </b>").addTo(groundZeroLayer);
+        L.circle([gzLat, gzLng], { color: '#f97316', fillColor: '#ffedd5', fillOpacity: 0.1, weight: 2, dashArray: '8, 8', radius: 10000 }).bindTooltip("<b> </b>").addTo(groundZeroLayer);
 
         // URL GOOGLE SHEETS
         const riskDataUrl = 'https://docs.google.com/spreadsheets/d/10CQIZ8XlP0SvDq9cwAGRf5hVMfLHd4LDi_PpIqBDsPs/export?format=csv&gid=0';
