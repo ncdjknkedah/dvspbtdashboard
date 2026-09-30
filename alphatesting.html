@@ -67,7 +67,7 @@
                     
                     <label class="flex items-center space-x-3 cursor-pointer">
                         <input type="checkbox" id="toggleControl" checked class="form-checkbox h-5 w-5 text-blue-600 rounded">
-                        <span class="text-gray-700 font-medium">🔵 Aktiviti Kawalan (DVS)</span>
+                        <span class="text-gray-700 font-medium">🔵 Aktiviti Kawalan (DVS/PBT)</span>
                     </label>
 
                     <label class="flex items-center space-x-3 cursor-pointer mt-4 pt-4 border-t">
@@ -98,7 +98,7 @@
 
     <!-- Logik Leaflet & Data -->
     <script>
-        // Setup Peta Leaflet
+        // Setup Peta Leaflet (Pusat di Kedah)
         var map = L.map('map').setView([6.166, 100.366], 11);
 
         // Lapisan Peta Asas (Percuma dari OpenStreetMap & Esri)
@@ -137,17 +137,35 @@
             iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
         });
 
-        // URL Google Sheets
-        const riskDataUrl = 'https://docs.google.com/spreadsheets/d/1vq1GLhzcSpVGlPPNmxodg0ML_rweYhIRQs_oBjDo4Nw/export?format=csv&gid=1781670700';
+        // ---------------------------------------------------------
+        // URL GOOGLE SHEETS
+        // ---------------------------------------------------------
+        // SHEET BARU: Laporan Risiko Awam (Sheet1, gid=0)
+        const riskDataUrl = 'https://docs.google.com/spreadsheets/d/10CQIZ8XlP0SvDq9cwAGRf5hVMfLHd4LDi_PpIqBDsPs/export?format=csv&gid=0';
+        
+        // LAMA: Aktiviti Kawalan (kekal sama)
         const controlDataUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=1524998352';
 
-        // Tarik Data Risiko
+        // ---------------------------------------------------------
+        // TETAPAN KOLUM (Ubah di sini jika perlu)
+        // A=0, B=1, C=2, D=3, E=4, F=5 ... AA=26, AB=27
+        // ---------------------------------------------------------
+        const riskLatIndex = 26; // <-- UBAH INI (Ikut kolum Latitude di Google Sheet Awam yg baru)
+        const riskLngIndex = 27; // <-- UBAH INI (Ikut kolum Longitude di Google Sheet Awam yg baru)
+        
+        const controlLatIndex = 4; // Kolum E
+        const controlLngIndex = 5; // Kolum F
+
+
+        // Tarik Data Risiko (Awam)
         Papa.parse(riskDataUrl, {
             download: true, header: false, skipEmptyLines: true,
             complete: function(results) {
+                // Mula loop dari i=1 untuk abaikan baris tajuk (header)
                 for (let i = 1; i < results.data.length; i++) {
-                    let lat = parseFloat(results.data[i][26]);
-                    let lng = parseFloat(results.data[i][27]);
+                    let lat = parseFloat(results.data[i][riskLatIndex]);
+                    let lng = parseFloat(results.data[i][riskLngIndex]);
+                    
                     if (!isNaN(lat) && !isNaN(lng)) {
                         L.marker([lat, lng], {icon: redIcon})
                          .bindPopup("<b>Laporan Awam Risiko</b>")
@@ -157,7 +175,7 @@
             }
         });
 
-        // Tarik Data Kawalan & Bina Jadual
+        // Tarik Data Kawalan & Bina Jadual (DVS)
         Papa.parse(controlDataUrl, {
             download: true, header: true, skipEmptyLines: true,
             complete: function(results) {
@@ -168,8 +186,8 @@
                     let rowArray = Object.values(row);
                     tableDataSet.push(rowArray);
 
-                    let lat = parseFloat(rowArray[4]); // Kolum E
-                    let lng = parseFloat(rowArray[5]); // Kolum F
+                    let lat = parseFloat(rowArray[controlLatIndex]);
+                    let lng = parseFloat(rowArray[controlLngIndex]);
 
                     if (!isNaN(lat) && !isNaN(lng)) {
                         // Info Popup
@@ -207,7 +225,8 @@
                     language: {
                         search: "Carian Pantas:", lengthMenu: "Papar _MENU_ rekod",
                         info: "Memaparkan _START_ hingga _END_ dari _TOTAL_ rekod",
-                        paginate: { next: "Seterusnya", previous: "Sebelumnya" }
+                        paginate: { next: "Seterusnya", previous: "Sebelumnya" },
+                        emptyTable: "Data sedang dimuat turun atau tiada rekod dijumpai."
                     }
                 });
             }
