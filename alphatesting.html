@@ -168,7 +168,6 @@
         var controlLayer = L.layerGroup().addTo(map);
         var radiusLayer = L.layerGroup().addTo(map);
 
-        // Array untuk menyimpan rekod bulatan radius supaya boleh diubah (real-time)
         var dynamicControlCircles = [];
 
         // Ground Zero & Radius (5KM / 10KM)
@@ -222,10 +221,8 @@
                 let totalPositive = 0;
                 let activityTypesCount = {};
                 
-                let maxTimestamp = 0;
-                let latestDateString = "";
+                let latestDateString = "Tiada Maklumat";
                 
-                // Ambil nilai radius semasa dari Slider UI (Lalai = 500)
                 let initialRadius = parseInt(document.getElementById('radiusSlider').value);
 
                 results.data.forEach((row) => {
@@ -234,7 +231,7 @@
 
                     let dateStr = rowArray[1]; // Kolum B (Tarikh)
                     
-                    if(dateStr) {
+                    if(dateStr && dateStr.trim() !== "") {
                         totalActivities++;
                         
                         let captures = parseInt(rowArray[7]) || 0; 
@@ -246,19 +243,8 @@
                         let actType = rowArray[6] ? rowArray[6].trim() : "Lain-lain / Tidak Dinyatakan";
                         activityTypesCount[actType] = (activityTypesCount[actType] || 0) + 1;
 
-                        let parts = dateStr.split(/[\/\-]/);
-                        let timestamp = 0;
-                        if(parts.length === 3) {
-                            if(parts[0].length === 4) timestamp = new Date(dateStr).getTime(); 
-                            else timestamp = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`).getTime(); 
-                        } else {
-                            timestamp = new Date(dateStr).getTime();
-                        }
-                        
-                        if (timestamp > maxTimestamp) {
-                            maxTimestamp = timestamp;
-                            latestDateString = dateStr;
-                        }
+                        // Mengambil terus data tertulis dari baris terakhir tanpa mengira formatnya
+                        latestDateString = dateStr.trim();
                     }
 
                     // Plot ke Peta
@@ -277,13 +263,11 @@
 
                         L.circleMarker([lat, lng], controlDotStyle).bindTooltip(popupContent, {direction: 'top'}).addTo(controlLayer);
                         
-                        // Cipta Bulatan Radius Dinamik
                         let dynamicCircle = L.circle([lat, lng], { 
                             color: '#eab308', fillColor: '#fef08a', fillOpacity: 0.2, radius: initialRadius, interactive: false 
                         });
                         dynamicCircle.addTo(radiusLayer);
                         
-                        // Simpan ke dalam array supaya ia boleh diubah oleh slider
                         dynamicControlCircles.push(dynamicCircle);
                     }
                 });
@@ -292,7 +276,7 @@
                 document.getElementById('scoreActivities').innerText = totalActivities;
                 document.getElementById('scoreCaptures').innerText = totalCaptures;
                 document.getElementById('scorePositive').innerText = totalPositive;
-                document.getElementById('lastUpdatedDate').innerText = "Tarikh Kemaskini: " + (latestDateString || "Tiada Maklumat");
+                document.getElementById('lastUpdatedDate').innerText = "Tarikh Kemaskini: " + latestDateString;
 
                 // JANA PIE CHART
                 let ctx = document.getElementById('activityPieChart').getContext('2d');
@@ -335,12 +319,10 @@
         document.getElementById('toggleControl').addEventListener('change', function() { this.checked ? map.addLayer(controlLayer) : map.removeLayer(controlLayer); });
         document.getElementById('toggleRadius').addEventListener('change', function() { this.checked ? map.addLayer(radiusLayer) : map.removeLayer(radiusLayer); });
         
-        // Logik Perubahan Radius secara langsung (Live Update)
         document.getElementById('radiusSlider').addEventListener('input', function() {
             let newRadius = parseInt(this.value);
             document.getElementById('radiusValue').innerText = newRadius;
             
-            // Lakukan gelung (loop) untuk kemaskini saiz setiap bulatan radius kawalan
             dynamicControlCircles.forEach(function(circle) {
                 circle.setRadius(newRadius);
             });
