@@ -20,6 +20,9 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+    <!-- Chart.js (Untuk Pie Chart) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- Font Asas Rasmi -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
@@ -47,6 +50,8 @@
             </div>
             <div class="text-right">
                 <span class="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide border border-white">Status Wabak: Terkawal</span>
+                <!-- Tarikh Kemaskini Ditambah Di Sini -->
+                <p id="lastUpdatedDate" class="text-xs text-blue-200 mt-2 font-medium">Tarikh Kemaskini: Menyemak data...</p>
             </div>
         </div>
     </header>
@@ -94,6 +99,37 @@
             </div>
         </div>
 
+        <!-- 🔴 BAHAGIAN BARU: RINGKASAN SCORE CARD & PIE CHART 🔴 -->
+        <div class="mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Ringkasan Aktiviti Kawalan</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <!-- Card 1: Jumlah Aktiviti -->
+                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+                    <p class="text-sm text-gray-500 font-semibold uppercase">Jumlah Operasi / Aktiviti</p>
+                    <p class="text-4xl font-bold text-gray-800 mt-2" id="scoreActivities">0</p>
+                </div>
+                <!-- Card 2: Jumlah Tangkapan -->
+                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-500">
+                    <p class="text-sm text-gray-500 font-semibold uppercase">Jumlah Tangkapan Haiwan</p>
+                    <p class="text-4xl font-bold text-gray-800 mt-2" id="scoreCaptures">0</p>
+                </div>
+                <!-- Card 3: Sampel Positif -->
+                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
+                    <p class="text-sm text-gray-500 font-semibold uppercase">Sampel Positif Rabies</p>
+                    <p class="text-4xl font-bold text-gray-800 mt-2" id="scorePositive">0</p>
+                </div>
+            </div>
+
+            <!-- Pie Chart Container -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-md font-bold text-gray-700 mb-4 text-center">Pecahan Mengikut Jenis Aktiviti Kawalan</h3>
+                <div class="relative w-full flex justify-center" style="height: 300px;">
+                    <canvas id="activityPieChart"></canvas>
+                </div>
+            </div>
+        </div>
+
         <!-- Jadual Data -->
         <div>
             <h2 class="text-xl font-bold text-gray-800 mb-2">Jadual Rekod Aktiviti Kawalan Terkini</h2>
@@ -104,120 +140,120 @@
 
     <!-- Logik Leaflet & Data -->
     <script>
-        // Setup Peta Leaflet (Pusat pada titik Ground Zero yg baru)
-        var gzLat = 6.4309278; // 6°25'51.34"N ditukar ke format perpuluhan
-        var gzLng = 100.4297083; // 100°25'46.95"E ditukar ke format perpuluhan
+        // Setup Peta Leaflet
+        var gzLat = 6.4309278; 
+        var gzLng = 100.4297083; 
         
         var map = L.map('map').setView([gzLat, gzLng], 12);
 
-        // Lapisan Peta Asas (Percuma dari OpenStreetMap & Esri)
-        var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        });
-        
-        var satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles &copy; Esri'
-        });
+        // Lapisan Peta Asas
+        var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' });
+        var satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri' });
 
-        osmLayer.addTo(map); // Peta lalai (default)
+        osmLayer.addTo(map); 
+        L.control.layers({"Peta Jalan (OSM)": osmLayer, "Peta Satelit (Esri)": satelliteLayer}).addTo(map);
 
-        // Menu tukar peta di kanan atas
-        var baseMaps = {
-            "Peta Jalan (OSM)": osmLayer,
-            "Peta Satelit (Esri)": satelliteLayer
-        };
-        L.control.layers(baseMaps).addTo(map);
-
-        // Kumpulan Lapisan Data (Layer Groups)
         var groundZeroLayer = L.layerGroup().addTo(map);
         var riskLayer = L.layerGroup().addTo(map);
         var controlLayer = L.layerGroup().addTo(map);
         var radiusLayer = L.layerGroup().addTo(map);
 
-        // ---------------------------------------------------------
-        // BINA LAPISAN GROUND ZERO (Titik + Radius 5km & 10km)
-        // ---------------------------------------------------------
-        // Titik Ground Zero
+        // Ground Zero & Radius
         L.circleMarker([gzLat, gzLng], {
-            radius: 8, fillColor: "#dc2626", color: "#7f1d1d", weight: 3, opacity: 1, fillOpacity: 1
+            radius: 8, fillColor: "#dc2626", color: "#7f1d1d", weight: 3, opacity: 1, fillOpacity: 1, pane: 'markerPane'
         }).bindTooltip("<div style='padding:5px; font-weight:bold; color:red;'>📍 GROUND ZERO RABIES</div>", {permanent: true, direction: 'right', className: 'bg-transparent border-0 shadow-none'})
           .addTo(groundZeroLayer);
 
-        // Radius 5KM (Merah / Zon Infeksi)
-        L.circle([gzLat, gzLng], {
-            color: '#ef4444', fillColor: '#fee2e2', fillOpacity: 0.15, weight: 2, dashArray: '5, 5', radius: 5000
-        }).bindTooltip("<b>Zon Infeksi / Jangkitan (5 KM)</b>").addTo(groundZeroLayer);
+        L.circle([gzLat, gzLng], { color: '#ef4444', fillColor: '#fee2e2', fillOpacity: 0.15, weight: 2, dashArray: '5, 5', radius: 5000 }).bindTooltip("<b>Zon Infeksi / Jangkitan (5 KM)</b>").addTo(groundZeroLayer);
+        L.circle([gzLat, gzLng], { color: '#f97316', fillColor: '#ffedd5', fillOpacity: 0.1, weight: 2, dashArray: '8, 8', radius: 10000 }).bindTooltip("<b>Zon Pengawasan (10 KM)</b>").addTo(groundZeroLayer);
 
-        // Radius 10KM (Oren / Zon Pengawasan)
-        L.circle([gzLat, gzLng], {
-            color: '#f97316', fillColor: '#ffedd5', fillOpacity: 0.1, weight: 2, dashArray: '8, 8', radius: 10000
-        }).bindTooltip("<b>Zon Pengawasan (10 KM)</b>").addTo(groundZeroLayer);
-
-
-        // ---------------------------------------------------------
-        // GAYA TITIK & TETAPAN URL
-        // ---------------------------------------------------------
-        var riskDotStyle = { radius: 6, fillColor: "#ff8c00", color: "#ffffff", weight: 2, opacity: 1, fillOpacity: 0.9 };
-        var controlDotStyle = { radius: 9, fillColor: "#00ff00", color: "#006400", weight: 2, opacity: 1, fillOpacity: 0.9 };
-
+        // URL GOOGLE SHEETS
         const riskDataUrl = 'https://docs.google.com/spreadsheets/d/10CQIZ8XlP0SvDq9cwAGRf5hVMfLHd4LDi_PpIqBDsPs/export?format=csv&gid=0';
         const controlDataUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=1524998352';
 
-        const riskLatIndex = 3; 
-        const riskLngIndex = 4; 
-        const controlLatIndex = 4; 
-        const controlLngIndex = 5; 
+        const riskLatIndex = 3, riskLngIndex = 4; 
+        const controlLatIndex = 4, controlLngIndex = 5, controlPosIndex = 10; // K=10
 
-        // ---------------------------------------------------------
-        // BACA DATA RISIKO (LAPORAN AWAM)
-        // ---------------------------------------------------------
+        var riskDotStyle = { radius: 6, fillColor: "#ff8c00", color: "#ffffff", weight: 2, opacity: 1, fillOpacity: 0.9, pane: 'markerPane' };
+        var controlDotStyle = { radius: 9, fillColor: "#00ff00", color: "#006400", weight: 2, opacity: 1, fillOpacity: 0.9, pane: 'markerPane' };
+
+        // 1. Tarik Data Risiko (Awam)
         Papa.parse(riskDataUrl, {
             download: true, header: false, skipEmptyLines: true,
             complete: function(results) {
                 for (let i = 1; i < results.data.length; i++) {
                     let lat = parseFloat(results.data[i][riskLatIndex]);
                     let lng = parseFloat(results.data[i][riskLngIndex]);
-                    
                     if (!isNaN(lat) && !isNaN(lng)) {
-                        
-                        // Isi Kandungan Hover (Index 0 = Col A, Index 1 = Col B)
                         let popupContent = `
                             <div class="info-window-content">
                                 <h3>Laporan Awam Risiko</h3>
                                 <strong>Nama Pengadu:</strong> ${results.data[i][0] || 'Tiada Maklumat'}<br>
                                 <strong>No. Telefon:</strong> ${results.data[i][1] || 'Tiada Maklumat'}
-                            </div>
-                        `;
-
-                        // Tambah pada Peta dengan bindTooltip (Untuk fungsi HOVER)
-                        L.circleMarker([lat, lng], riskDotStyle)
-                         .bindTooltip(popupContent, {direction: 'top'})
-                         .addTo(riskLayer);
+                            </div>`;
+                        L.circleMarker([lat, lng], riskDotStyle).bindTooltip(popupContent, {direction: 'top'}).addTo(riskLayer);
                     }
                 }
             }
         });
 
-        // ---------------------------------------------------------
-        // BACA DATA AKTIVITI KAWALAN (DVS)
-        // ---------------------------------------------------------
+        // 2. Tarik Data Kawalan & Proses Metrik
         Papa.parse(controlDataUrl, {
             download: true, header: true, skipEmptyLines: true,
             complete: function(results) {
                 let tableDataSet = [];
                 let headers = results.meta.fields;
 
+                // Pembolehubah untuk Dashboard Metrik
+                let totalActivities = 0;
+                let totalCaptures = 0;
+                let totalPositive = 0;
+                let activityTypesCount = {};
+                
+                let maxTimestamp = 0;
+                let latestDateString = "";
+
                 results.data.forEach((row) => {
-                    // Tukar object ke array supaya lebih mudah dipanggil by index (Col A=0, B=1, ... G=6, H=7, I=8)
                     let rowArray = Object.values(row); 
                     tableDataSet.push(rowArray);
 
+                    let dateStr = rowArray[1]; // Kolum B (Tarikh)
+                    
+                    // Kira Metrik Score Cards Jika Ada Tarikh
+                    if(dateStr) {
+                        totalActivities++;
+                        
+                        let captures = parseInt(rowArray[7]) || 0; // Kolum H
+                        let positive = parseInt(rowArray[controlPosIndex]) || 0; // Kolum K
+                        
+                        totalCaptures += captures;
+                        totalPositive += positive;
+
+                        // Kira Pecahan Jenis Aktiviti (Kolum G)
+                        let actType = rowArray[6] ? rowArray[6].trim() : "Lain-lain / Tidak Dinyatakan";
+                        activityTypesCount[actType] = (activityTypesCount[actType] || 0) + 1;
+
+                        // Cari Tarikh Terkini
+                        let parts = dateStr.split(/[\/\-]/);
+                        let timestamp = 0;
+                        if(parts.length === 3) {
+                            if(parts[0].length === 4) timestamp = new Date(dateStr).getTime(); // YYYY-MM-DD
+                            else timestamp = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`).getTime(); // DD/MM/YYYY ke format standard
+                        } else {
+                            timestamp = new Date(dateStr).getTime();
+                        }
+                        
+                        if (timestamp > maxTimestamp) {
+                            maxTimestamp = timestamp;
+                            latestDateString = dateStr;
+                        }
+                    }
+
+                    // Plot ke Peta
                     let lat = parseFloat(rowArray[controlLatIndex]);
                     let lng = parseFloat(rowArray[controlLngIndex]);
 
                     if (!isNaN(lat) && !isNaN(lng)) {
-                        
-                        // Isi Kandungan Hover (Tarikh=B, Aktiviti=G, Tangkapan=H, Sample=I)
                         let popupContent = `
                             <div class="info-window-content">
                                 <h3>Aktiviti Kawalan (DVS/PBT)</h3>
@@ -225,18 +261,46 @@
                                 <strong>Aktiviti:</strong> ${rowArray[6] || 'N/A'}<br>
                                 <strong>Bil. Tangkapan:</strong> <span style="color:#b91c1c; font-weight:bold;">${rowArray[7] || '0'} ekor</span><br>
                                 <strong>Bil. Sampel:</strong> <span style="color:#0369a1; font-weight:bold;">${rowArray[8] || '0'} sampel</span>
-                            </div>
-                        `;
+                            </div>`;
 
-                        // Tambah pada Peta dengan bindTooltip (Untuk fungsi HOVER)
-                        L.circleMarker([lat, lng], controlDotStyle)
-                         .bindTooltip(popupContent, {direction: 'top'})
-                         .addTo(controlLayer);
+                        L.circleMarker([lat, lng], controlDotStyle).bindTooltip(popupContent, {direction: 'top'}).addTo(controlLayer);
+                        L.circle([lat, lng], { color: '#eab308', fillColor: '#fef08a', fillOpacity: 0.2, radius: 1000, interactive: false }).addTo(radiusLayer);
+                    }
+                });
 
-                        // Tambah Bulatan Radius 1KM
-                        L.circle([lat, lng], {
-                            color: '#eab308', fillColor: '#fef08a', fillOpacity: 0.2, radius: 1000 
-                        }).addTo(radiusLayer);
+                // UPDATE UI DOM (Scorecards & Date)
+                document.getElementById('scoreActivities').innerText = totalActivities;
+                document.getElementById('scoreCaptures').innerText = totalCaptures;
+                document.getElementById('scorePositive').innerText = totalPositive;
+                document.getElementById('lastUpdatedDate').innerText = "Tarikh Kemaskini: " + (latestDateString || "Tiada Maklumat");
+
+                // JANA PIE CHART
+                let ctx = document.getElementById('activityPieChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: Object.keys(activityTypesCount),
+                        datasets: [{
+                            data: Object.values(activityTypesCount),
+                            backgroundColor: [
+                                '#3b82f6', // Biru
+                                '#10b981', // Hijau
+                                '#f59e0b', // Kuning/Oren
+                                '#ef4444', // Merah
+                                '#8b5cf6', // Ungu
+                                '#ec4899', // Pink
+                                '#6b7280'  // Kelabu
+                            ],
+                            borderWidth: 1,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'right', labels: { font: { family: 'Inter' } } }
+                        }
                     }
                 });
 
@@ -247,7 +311,7 @@
                     columns: tableHeaders,
                     scrollX: true,
                     pageLength: 10,
-                    order: [[1, 'desc']], // Automatik susun Tarikh (Col B) dari terkini
+                    order: [[1, 'desc']], // Susun Tarikh (Col B) dari terkini
                     language: {
                         search: "Carian Pantas:", lengthMenu: "Papar _MENU_ rekod",
                         info: "Memaparkan _START_ hingga _END_ dari _TOTAL_ rekod",
@@ -258,21 +322,11 @@
             }
         });
 
-        // ---------------------------------------------------------
-        // LOGIK BUKA/TUTUP LAPISAN (CHECKBOX)
-        // ---------------------------------------------------------
-        document.getElementById('toggleGroundZero').addEventListener('change', function() {
-            this.checked ? map.addLayer(groundZeroLayer) : map.removeLayer(groundZeroLayer);
-        });
-        document.getElementById('toggleRisk').addEventListener('change', function() {
-            this.checked ? map.addLayer(riskLayer) : map.removeLayer(riskLayer);
-        });
-        document.getElementById('toggleControl').addEventListener('change', function() {
-            this.checked ? map.addLayer(controlLayer) : map.removeLayer(controlLayer);
-        });
-        document.getElementById('toggleRadius').addEventListener('change', function() {
-            this.checked ? map.addLayer(radiusLayer) : map.removeLayer(radiusLayer);
-        });
+        // Logik Buka/Tutup Lapisan (Checkbox)
+        document.getElementById('toggleGroundZero').addEventListener('change', function() { this.checked ? map.addLayer(groundZeroLayer) : map.removeLayer(groundZeroLayer); });
+        document.getElementById('toggleRisk').addEventListener('change', function() { this.checked ? map.addLayer(riskLayer) : map.removeLayer(riskLayer); });
+        document.getElementById('toggleControl').addEventListener('change', function() { this.checked ? map.addLayer(controlLayer) : map.removeLayer(controlLayer); });
+        document.getElementById('toggleRadius').addEventListener('change', function() { this.checked ? map.addLayer(radiusLayer) : map.removeLayer(radiusLayer); });
 
     </script>
 </body>
