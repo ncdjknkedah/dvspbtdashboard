@@ -72,7 +72,7 @@
 
                     <label class="flex items-center space-x-3 cursor-pointer mt-4 pt-4 border-t">
                         <input type="checkbox" id="toggleRisk" checked class="form-checkbox h-5 w-5 text-orange-500 rounded">
-                        <span class="text-gray-700 font-medium">🟠 Laporan Risiko Awam</span>
+                        <span class="text-gray-700 font-medium">🟠 *Laporan Risiko Awam</span>
                     </label>
                     
                     <label class="flex items-center space-x-3 cursor-pointer">
@@ -98,8 +98,8 @@
                 </div>
                 
                 <div class="mt-8 bg-blue-50 p-4 rounded-md border border-blue-100">
-                    <h3 class="text-sm font-bold text-blue-800">Tips Penggunaan:</h3>
-                    <p class="text-xs text-gray-600 mt-2">Gerakkan pelaras di atas untuk melihat anggaran zon liputan bagi setiap titik operasi. Halakan tetikus pada titik untuk butiran lanjut.</p>
+                    <h3 class="text-sm font-bold text-blue-800">*Laporan Risiko Awam:</h3>
+                    <p class="text-xs text-gray-600 mt-2">Merujuk kepada aduan keberadaan bangkai atau haiwan yang berkelakuan tidak normal di kawasan berdekatan.</p>
                 </div>
             </div>
 
@@ -111,12 +111,18 @@
 
         <!-- RINGKASAN SCORE CARD & PIE CHART -->
         <div class="mb-8">
-            <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Ringkasan Aktiviti Kawalan</h2>
+            <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Ringkasan Aktiviti Kawalan & Aduan</h2>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <!-- Ditukar kepada 4 kolum (md:grid-cols-2 lg:grid-cols-4) supaya 4 kad nampak seimbang -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                <!-- Card Baru: Laporan Risiko Awam -->
+                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500">
+                    <p class="text-sm text-gray-500 font-semibold uppercase">Laporan Aduan Awam</p>
+                    <p class="text-4xl font-bold text-gray-800 mt-2" id="scoreRiskReports">0</p>
+                </div>
                 <!-- Card 1 -->
                 <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
-                    <p class="text-sm text-gray-500 font-semibold uppercase">Jumlah Operasi / Aktiviti</p>
+                    <p class="text-sm text-gray-500 font-semibold uppercase">Jumlah Operasi Kawalan</p>
                     <p class="text-4xl font-bold text-gray-800 mt-2" id="scoreActivities">0</p>
                 </div>
                 <!-- Card 2 -->
@@ -193,7 +199,14 @@
         Papa.parse(riskDataUrl, {
             download: true, header: false, skipEmptyLines: true,
             complete: function(results) {
+                let totalRiskReports = 0; // Pengira untuk aduan awam
+
                 for (let i = 1; i < results.data.length; i++) {
+                    // Kira aduan jika Kolum A (index 0) mempunyai data / tidak kosong
+                    if (results.data[i][0] && results.data[i][0].trim() !== "") {
+                        totalRiskReports++;
+                    }
+
                     let lat = parseFloat(results.data[i][riskLatIndex]);
                     let lng = parseFloat(results.data[i][riskLngIndex]);
                     if (!isNaN(lat) && !isNaN(lng)) {
@@ -206,6 +219,9 @@
                         L.circleMarker([lat, lng], riskDotStyle).bindTooltip(popupContent, {direction: 'top'}).addTo(riskLayer);
                     }
                 }
+                
+                // Kemaskini Score Card Aduan Awam
+                document.getElementById('scoreRiskReports').innerText = totalRiskReports;
             }
         });
 
