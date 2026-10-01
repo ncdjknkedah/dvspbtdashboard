@@ -132,7 +132,7 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <!-- Card Laporan Risiko Awam -->
-                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500 flex flex-col justify-center">
+                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-50 flex flex-col justify-center">
                     <p class="text-sm text-gray-500 font-semibold uppercase">Laporan Aduan Awam</p>
                     <p class="text-4xl font-bold text-gray-800 mt-2" id="scoreRiskReports">0</p>
                 </div>
@@ -258,8 +258,6 @@
         const riskDataUrl = 'https://docs.google.com/spreadsheets/d/10CQIZ8XlP0SvDq9cwAGRf5hVMfLHd4LDi_PpIqBDsPs/export?format=csv&gid=0';
         const controlDataUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=1524998352';
         const vetAnalyticsUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=0';
-        
-        // TELAH DIKEMASKINI DENGAN GID SEBENAR: 81933549
         const acdDataUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=81933549';
 
         const riskLatIndex = 3, riskLngIndex = 4; 
@@ -440,8 +438,10 @@
                             let popupContent = `
                                 <div class="info-window-content">
                                     <h3>Data Sasaran (ACD)</h3>
-                                    <strong>Status:</strong> ${isVax ? '<span style="color:green">SELESAI DIVAKSIN</span>' : '<span style="color:red">BELUM DIVAKSIN</span>'}<br>
+                                    <strong>Nama Penghuni:</strong> ${row[7] || 'Tiada Maklumat'}<br>
+                                    <strong>No. Telefon:</strong> ${row[9] || 'Tiada Maklumat'}<br>
                                     <strong>Maklumat Haiwan:</strong> ${row[12] || 'Tiada Maklumat'}<br>
+                                    <strong>Status:</strong> ${isVax ? '<span style="color:green">SELESAI DIVAKSIN</span>' : '<span style="color:red">BELUM DIVAKSIN</span>'}
                                 </div>`;
 
                             let marker = L.circleMarker([lat, lng], isVax ? acdVaxDotStyle : acdUnvaxDotStyle)
