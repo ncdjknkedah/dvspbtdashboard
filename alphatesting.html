@@ -159,7 +159,6 @@
 
             <h3 class="text-md font-bold text-gray-700 mb-3 mt-8">Analisis Terperinci Operasi Jabatan Perkhidmatan Veterinar Negeri Kedah dan MPKP (Kumulatif)</h3>
             
-            <!-- Ditukar kepada 4 kolum sahaja selepas Status Vaksinasi dibuang -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 
                 <div class="bg-indigo-50 rounded-lg shadow-sm p-5 border border-indigo-100">
@@ -206,15 +205,27 @@
                     </div>
                 </div>
 
+                <!-- Kad ACD KKM Dikemaskini -->
                 <div class="bg-cyan-50 rounded-lg shadow-sm p-5 border border-cyan-100">
                     <h4 class="text-sm font-bold text-cyan-800 mb-3 border-b border-cyan-200 pb-2">Data ACD KKM</h4>
                     <div class="flex justify-between mb-2">
                         <span class="text-xs text-gray-600 font-semibold">Anjing Dikenalpasti (ACD KKM):</span>
                         <span class="text-sm font-bold text-gray-900" id="statAcdTotal">0</span>
                     </div>
-                    <div class="flex justify-between mt-3 pt-3 border-t border-cyan-200">
-                        <span class="text-xs text-green-700 font-bold">Telah Divaksin (Tindakan DVS):</span>
-                        <span class="text-sm font-bold text-green-700" id="statAcdVax">0 (0%)</span>
+                    <div class="mt-3 pt-3 border-t border-cyan-200">
+                        <span class="text-xs text-cyan-800 font-bold mb-2 block">Tindakan DVS:</span>
+                        <div class="flex justify-between mb-1 pl-2">
+                            <span class="text-[11px] text-gray-600 font-semibold">↳ Selesai Divaksinasi:</span>
+                            <span class="text-xs font-bold text-green-700" id="statAcdSelesai">0</span>
+                        </div>
+                        <div class="flex justify-between mb-1 pl-2">
+                            <span class="text-[11px] text-gray-600 font-semibold">↳ Menolak Divaksinasi:</span>
+                            <span class="text-xs font-bold text-red-600" id="statAcdMenolak">0</span>
+                        </div>
+                        <div class="flex justify-between pl-2">
+                            <span class="text-[11px] text-gray-600 font-semibold">↳ Dalam Tindakan:</span>
+                            <span class="text-xs font-bold text-yellow-600" id="statAcdDalamTindakan">0</span>
+                        </div>
                     </div>
                 </div>
 
@@ -373,7 +384,6 @@
         Papa.parse(vetAnalyticsUrl, {
             download: true, header: false, skipEmptyLines: true,
             complete: function(results) {
-                // Semua pembolehubah berdasarkan index susunan kolum yang baharu
                 let sumLiar = 0, sumPeliharaan = 0, sumPeliharaanVaksin = 0, sumVaksin = 0;
                 let sumGigitManusia = 0, sumGigitTernakan = 0;
                 let sumTangkapan = 0, sumSampel = 0, sumPositif = 0;
@@ -381,15 +391,15 @@
                 for (let i = 4; i < results.data.length; i++) {
                     let row = results.data[i];
                     if(row[0] && row[0].trim() !== "") { 
-                        sumLiar += parseInt(row[1]) || 0;               // Col B (1)
-                        sumPeliharaan += parseInt(row[2]) || 0;         // Col C (2)
-                        sumPeliharaanVaksin += parseInt(row[3]) || 0;   // Col D (3) - BAHARU
-                        sumVaksin += parseInt(row[4]) || 0;             // Col E (4) - BERGANJAK
-                        sumGigitManusia += parseInt(row[5]) || 0;       // Col F (5) - BERGANJAK
-                        sumGigitTernakan += parseInt(row[6]) || 0;      // Col G (6) - BERGANJAK
-                        sumTangkapan += parseInt(row[7]) || 0;          // Col H (7) - BERGANJAK
-                        sumSampel += parseInt(row[8]) || 0;             // Col I (8) - BERGANJAK
-                        sumPositif += parseInt(row[9]) || 0;            // Col J (9) - BERGANJAK
+                        sumLiar += parseInt(row[1]) || 0;
+                        sumPeliharaan += parseInt(row[2]) || 0;
+                        sumPeliharaanVaksin += parseInt(row[3]) || 0;
+                        sumVaksin += parseInt(row[4]) || 0;
+                        sumGigitManusia += parseInt(row[5]) || 0;
+                        sumGigitTernakan += parseInt(row[6]) || 0;
+                        sumTangkapan += parseInt(row[7]) || 0;
+                        sumSampel += parseInt(row[8]) || 0;
+                        sumPositif += parseInt(row[9]) || 0;
                     }
                 }
 
@@ -408,7 +418,6 @@
                 document.getElementById('statPeliharaan').innerText = `${sumPeliharaan} (${pctPeliharaan}%)`;
                 document.getElementById('statPeliharaanVaksin').innerText = `${sumPeliharaanVaksin} (${pctPeliharaanVaksin}%)`;
 
-                // Jumlah Keseluruhan Aktiviti Vaksinasi diletakkan di dalam Score Card atas
                 document.getElementById('scoreVaksinasi').innerText = sumVaksin;
 
                 document.getElementById('statGigitManusia').innerText = `${sumGigitManusia} (${pctGigitManusia}%)`;
@@ -424,7 +433,9 @@
             download: true, header: false, skipEmptyLines: true,
             complete: function(results) {
                 let totalAcd = 0;
-                let totalAcdVax = 0;
+                let totalAcdSelesai = 0;
+                let totalAcdMenolak = 0;
+                let totalAcdDalamTindakan = 0;
 
                 for (let i = 1; i < results.data.length; i++) {
                     let row = results.data[i];
@@ -433,9 +444,17 @@
                         totalAcd++;
                         
                         let colAE = row[30] ? row[30].toUpperCase().trim() : ""; 
-                        let isVax = (colAE === 'SELESAI');
                         
-                        if (isVax) totalAcdVax++;
+                        // Pengiraan mengikut status
+                        if (colAE === 'SELESAI') {
+                            totalAcdSelesai++;
+                        } else if (colAE === 'MENOLAK') {
+                            totalAcdMenolak++;
+                        } else if (colAE === 'DALAM TINDAKAN') {
+                            totalAcdDalamTindakan++;
+                        }
+                        
+                        let isVax = (colAE === 'SELESAI');
 
                         let lat = row[26] ? parseFloat(row[26]) : NaN; 
                         let lng = row[27] ? parseFloat(row[27]) : NaN; 
@@ -459,9 +478,11 @@
                     }
                 }
 
+                // Kemaskini DOM UI
                 document.getElementById('statAcdTotal').innerText = totalAcd;
-                let pctVax = totalAcd > 0 ? ((totalAcdVax / totalAcd) * 100).toFixed(1) : 0;
-                document.getElementById('statAcdVax').innerText = `${totalAcdVax} (${pctVax}%)`;
+                document.getElementById('statAcdSelesai').innerText = totalAcdSelesai;
+                document.getElementById('statAcdMenolak').innerText = totalAcdMenolak;
+                document.getElementById('statAcdDalamTindakan').innerText = totalAcdDalamTindakan;
             }
         });
 
