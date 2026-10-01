@@ -113,8 +113,8 @@
         <div class="mb-8">
             <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Ringkasan Aduan Awam dan Aktiviti Kawalan oleh DVS & MPKP</h2>
             
-            <!-- 4 Kad Asas (Telah Sedia Ada) -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <!-- Ditukar kepada 2 kolum sahaja memandangkan 2 kad telah dibuang -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <!-- Card Baru: Laporan Risiko Awam -->
                 <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500">
                     <p class="text-sm text-gray-500 font-semibold uppercase">Laporan Aduan Awam</p>
@@ -124,16 +124,6 @@
                 <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
                     <p class="text-sm text-gray-500 font-semibold uppercase">Jumlah Operasi Kawalan</p>
                     <p class="text-4xl font-bold text-gray-800 mt-2" id="scoreActivities">0</p>
-                </div>
-                <!-- Card 2 -->
-                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-500">
-                    <p class="text-sm text-gray-500 font-semibold uppercase">Tangkapan (Log Aktiviti)</p>
-                    <p class="text-4xl font-bold text-gray-800 mt-2" id="scoreCaptures">0</p>
-                </div>
-                <!-- Card 3 -->
-                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
-                    <p class="text-sm text-gray-500 font-semibold uppercase">Sampel Positif (Log)</p>
-                    <p class="text-4xl font-bold text-gray-800 mt-2" id="scorePositive">0</p>
                 </div>
             </div>
 
@@ -290,8 +280,6 @@
                 let headers = results.meta.fields;
 
                 let totalActivities = 0;
-                let totalCaptures = 0;
-                let totalPositive = 0;
                 let activityTypesCount = {};
                 
                 let latestDateString = "Tiada Maklumat";
@@ -305,11 +293,6 @@
                     
                     if(dateStr && dateStr.trim() !== "") {
                         totalActivities++;
-                        let captures = parseInt(rowArray[7]) || 0; 
-                        let positive = parseInt(rowArray[controlPosIndex]) || 0; 
-                        
-                        totalCaptures += captures;
-                        totalPositive += positive;
 
                         let actType = rowArray[6] ? rowArray[6].trim() : "Lain-lain / Tidak Dinyatakan";
                         activityTypesCount[actType] = (activityTypesCount[actType] || 0) + 1;
@@ -340,8 +323,6 @@
                 });
 
                 document.getElementById('scoreActivities').innerText = totalActivities;
-                document.getElementById('scoreCaptures').innerText = totalCaptures;
-                document.getElementById('scorePositive').innerText = totalPositive;
                 document.getElementById('lastUpdatedDate').innerText = "Tarikh Kemaskini: " + latestDateString;
 
                 // JANA PIE CHART
