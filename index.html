@@ -143,18 +143,24 @@
                     <p class="text-4xl font-bold text-gray-800 mt-2 mb-3" id="scoreActivities">0</p>
                     
                     <div class="flex justify-between border-t border-gray-100 pt-2 mb-1">
-                        <span class="text-xs text-gray-600 font-semibold">Dgn Tangkapan:</span>
+                        <span class="text-xs text-gray-600 font-semibold">Aktiviti Tangkapan:</span>
                         <span class="text-sm font-bold text-gray-900" id="scoreWithCapture">0</span>
                     </div>
-                    <div class="flex justify-between">
-                        <span class="text-xs text-gray-600 font-semibold">Tanpa Tangkapan:</span>
+                    <div class="flex justify-between mb-1">
+                        <span class="text-xs text-gray-600 font-semibold">Aktiviti Tanpa Tangkapan:</span>
                         <span class="text-sm font-bold text-gray-900" id="scoreWithoutCapture">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-xs text-gray-600 font-semibold">Aktiviti Vaksinasi:</span>
+                        <span class="text-sm font-bold text-gray-900" id="scoreVaksinasi">0</span>
                     </div>
                 </div>
             </div>
 
             <h3 class="text-md font-bold text-gray-700 mb-3 mt-8">Analisis Terperinci Operasi Jabatan Perkhidmatan Veterinar Negeri Kedah dan MPKP (Kumulatif)</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+            
+            <!-- Ditukar kepada 4 kolum sahaja selepas Status Vaksinasi dibuang -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 
                 <div class="bg-indigo-50 rounded-lg shadow-sm p-5 border border-indigo-100">
                     <h4 class="text-sm font-bold text-indigo-800 mb-3 border-b border-indigo-200 pb-2">Profil Anjing Dikenalpasti</h4>
@@ -166,13 +172,9 @@
                         <span class="text-xs text-gray-600 font-semibold">Peliharaan:</span>
                         <span class="text-sm font-bold text-gray-900" id="statPeliharaan">0 (0%)</span>
                     </div>
-                </div>
-
-                <div class="bg-emerald-50 rounded-lg shadow-sm p-5 border border-emerald-100">
-                    <h4 class="text-sm font-bold text-emerald-800 mb-3 border-b border-emerald-200 pb-2">Status Vaksinasi</h4>
-                    <div class="flex flex-col items-center justify-center mt-1">
-                        <span class="text-3xl font-bold text-emerald-600" id="statVaksinValue">0</span>
-                        <span class="text-[11px] text-emerald-800 font-bold mt-1 uppercase">Anjing Divaksin</span>
+                    <div class="flex justify-between mt-1 pl-3 border-l-2 border-indigo-300">
+                        <span class="text-[10px] text-gray-600 font-semibold">↳ Telah Divaksinasi:</span>
+                        <span class="text-xs font-bold text-indigo-900" id="statPeliharaanVaksin">0 (0%)</span>
                     </div>
                 </div>
 
@@ -247,7 +249,6 @@
 
         var dynamicControlCircles = [];
 
-        // Ground zero dan radius ditambahkan tanpa teks/tooltip
         L.circleMarker([gzLat, gzLng], {
             radius: 8, fillColor: "#dc2626", color: "#7f1d1d", weight: 3, opacity: 1, fillOpacity: 1, pane: 'markerPane'
         }).addTo(groundZeroLayer);
@@ -258,8 +259,6 @@
         const riskDataUrl = 'https://docs.google.com/spreadsheets/d/10CQIZ8XlP0SvDq9cwAGRf5hVMfLHd4LDi_PpIqBDsPs/export?format=csv&gid=0';
         const controlDataUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=1524998352';
         const vetAnalyticsUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=0';
-        
-        // GID SEBENAR ACD KKM Haiwan Tidak Divaksin
         const acdDataUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=81933549';
 
         const riskLatIndex = 3, riskLngIndex = 4; 
@@ -374,27 +373,30 @@
         Papa.parse(vetAnalyticsUrl, {
             download: true, header: false, skipEmptyLines: true,
             complete: function(results) {
-                let sumLiar = 0, sumPeliharaan = 0, sumVaksin = 0;
+                // Semua pembolehubah berdasarkan index susunan kolum yang baharu
+                let sumLiar = 0, sumPeliharaan = 0, sumPeliharaanVaksin = 0, sumVaksin = 0;
                 let sumGigitManusia = 0, sumGigitTernakan = 0;
                 let sumTangkapan = 0, sumSampel = 0, sumPositif = 0;
 
                 for (let i = 4; i < results.data.length; i++) {
                     let row = results.data[i];
                     if(row[0] && row[0].trim() !== "") { 
-                        sumLiar += parseInt(row[1]) || 0;
-                        sumPeliharaan += parseInt(row[2]) || 0;
-                        sumVaksin += parseInt(row[3]) || 0;
-                        sumGigitManusia += parseInt(row[4]) || 0;
-                        sumGigitTernakan += parseInt(row[5]) || 0;
-                        sumTangkapan += parseInt(row[6]) || 0;
-                        sumSampel += parseInt(row[7]) || 0;
-                        sumPositif += parseInt(row[8]) || 0;
+                        sumLiar += parseInt(row[1]) || 0;               // Col B (1)
+                        sumPeliharaan += parseInt(row[2]) || 0;         // Col C (2)
+                        sumPeliharaanVaksin += parseInt(row[3]) || 0;   // Col D (3) - BAHARU
+                        sumVaksin += parseInt(row[4]) || 0;             // Col E (4) - BERGANJAK
+                        sumGigitManusia += parseInt(row[5]) || 0;       // Col F (5) - BERGANJAK
+                        sumGigitTernakan += parseInt(row[6]) || 0;      // Col G (6) - BERGANJAK
+                        sumTangkapan += parseInt(row[7]) || 0;          // Col H (7) - BERGANJAK
+                        sumSampel += parseInt(row[8]) || 0;             // Col I (8) - BERGANJAK
+                        sumPositif += parseInt(row[9]) || 0;            // Col J (9) - BERGANJAK
                     }
                 }
 
                 let totalAnjing = sumLiar + sumPeliharaan;
                 let pctLiar = totalAnjing > 0 ? ((sumLiar / totalAnjing) * 100).toFixed(1) : 0;
                 let pctPeliharaan = totalAnjing > 0 ? ((sumPeliharaan / totalAnjing) * 100).toFixed(1) : 0;
+                let pctPeliharaanVaksin = sumPeliharaan > 0 ? ((sumPeliharaanVaksin / sumPeliharaan) * 100).toFixed(1) : 0;
 
                 let totalGigitan = sumGigitManusia + sumGigitTernakan;
                 let pctGigitManusia = totalGigitan > 0 ? ((sumGigitManusia / totalGigitan) * 100).toFixed(1) : 0;
@@ -404,7 +406,10 @@
 
                 document.getElementById('statLiar').innerText = `${sumLiar} (${pctLiar}%)`;
                 document.getElementById('statPeliharaan').innerText = `${sumPeliharaan} (${pctPeliharaan}%)`;
-                document.getElementById('statVaksinValue').innerText = sumVaksin;
+                document.getElementById('statPeliharaanVaksin').innerText = `${sumPeliharaanVaksin} (${pctPeliharaanVaksin}%)`;
+
+                // Jumlah Keseluruhan Aktiviti Vaksinasi diletakkan di dalam Score Card atas
+                document.getElementById('scoreVaksinasi').innerText = sumVaksin;
 
                 document.getElementById('statGigitManusia').innerText = `${sumGigitManusia} (${pctGigitManusia}%)`;
                 document.getElementById('statGigitTernakan').innerText = `${sumGigitTernakan} (${pctGigitTernakan}%)`;
