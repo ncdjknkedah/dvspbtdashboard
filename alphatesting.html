@@ -132,7 +132,7 @@
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <!-- Card Laporan Risiko Awam -->
-                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-50 flex flex-col justify-center">
+                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500 flex flex-col justify-center">
                     <p class="text-sm text-gray-500 font-semibold uppercase">Laporan Aduan Awam</p>
                     <p class="text-4xl font-bold text-gray-800 mt-2" id="scoreRiskReports">0</p>
                 </div>
@@ -247,17 +247,19 @@
 
         var dynamicControlCircles = [];
 
+        // Ground zero dan radius ditambahkan tanpa teks/tooltip
         L.circleMarker([gzLat, gzLng], {
             radius: 8, fillColor: "#dc2626", color: "#7f1d1d", weight: 3, opacity: 1, fillOpacity: 1, pane: 'markerPane'
-        }).bindTooltip("<div style='padding:5px; font-weight:bold; color:red;'>📍 GROUND ZERO RABIES</div>", {permanent: true, direction: 'right', className: 'bg-transparent border-0 shadow-none'})
-          .addTo(groundZeroLayer);
+        }).addTo(groundZeroLayer);
 
-        L.circle([gzLat, gzLng], { color: '#ef4444', fillColor: '#fee2e2', fillOpacity: 0.15, weight: 2, dashArray: '5, 5', radius: 5000 }).bindTooltip("<b>Zon Infeksi / Jangkitan (5 KM)</b>").addTo(groundZeroLayer);
-        L.circle([gzLat, gzLng], { color: '#f97316', fillColor: '#ffedd5', fillOpacity: 0.1, weight: 2, dashArray: '8, 8', radius: 10000 }).bindTooltip("<b>Zon Pengawasan (10 KM)</b>").addTo(groundZeroLayer);
+        L.circle([gzLat, gzLng], { color: '#ef4444', fillColor: '#fee2e2', fillOpacity: 0.15, weight: 2, dashArray: '5, 5', radius: 5000 }).addTo(groundZeroLayer);
+        L.circle([gzLat, gzLng], { color: '#f97316', fillColor: '#ffedd5', fillOpacity: 0.1, weight: 2, dashArray: '8, 8', radius: 10000 }).addTo(groundZeroLayer);
 
         const riskDataUrl = 'https://docs.google.com/spreadsheets/d/10CQIZ8XlP0SvDq9cwAGRf5hVMfLHd4LDi_PpIqBDsPs/export?format=csv&gid=0';
         const controlDataUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=1524998352';
         const vetAnalyticsUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=0';
+        
+        // GID SEBENAR ACD KKM Haiwan Tidak Divaksin
         const acdDataUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=81933549';
 
         const riskLatIndex = 3, riskLngIndex = 4; 
@@ -422,7 +424,6 @@
                 for (let i = 1; i < results.data.length; i++) {
                     let row = results.data[i];
                     
-                    // Baca data selagi kolum M (index 12) ada sebarang rekod
                     if(row[12] && row[12].trim() !== "") {
                         totalAcd++;
                         
