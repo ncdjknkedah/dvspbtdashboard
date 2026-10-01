@@ -80,15 +80,15 @@
                         <span class="text-gray-700 font-medium">🟢 Aktiviti Kawalan (DVS/PBT)</span>
                     </label>
 
-                    <!-- Lapisan Baru ACD -->
+                    <!-- Lapisan Baru ACD (Ditukar Nama) -->
                     <label class="flex items-center space-x-3 cursor-pointer mt-4 pt-4 border-t">
                         <input type="checkbox" id="toggleAcdUnvax" checked class="form-checkbox h-5 w-5 text-red-600 rounded">
-                        <span class="text-gray-700 font-medium">🔴 Sasaran ACD (Belum Divaksin)</span>
+                        <span class="text-gray-700 font-medium leading-tight">🔴 Anjing Belum Divaksin<br><span class="text-xs text-gray-500">(Data ACD KKM)</span></span>
                     </label>
 
                     <label class="flex items-center space-x-3 cursor-pointer">
                         <input type="checkbox" id="toggleAcdVax" checked class="form-checkbox h-5 w-5 text-green-700 rounded">
-                        <span class="text-gray-700 font-medium">🟢 Sasaran ACD (Selesai Divaksin)</span>
+                        <span class="text-gray-700 font-medium leading-tight">🟢 Anjing Selesai Divaksin<br><span class="text-xs text-gray-500">(Data ACD KKM)</span></span>
                     </label>
 
                     <!-- Radius Checkbox -->
@@ -193,7 +193,7 @@
                     </div>
                 </div>
 
-                <!-- Card Analisis 5 (BARU): Data Sasaran ACD -->
+                <!-- Card Analisis 5: Data Sasaran ACD -->
                 <div class="bg-cyan-50 rounded-lg shadow-sm p-5 border border-cyan-100">
                     <h4 class="text-sm font-bold text-cyan-800 mb-3 border-b border-cyan-200 pb-2">Data Sasaran ACD</h4>
                     <div class="flex justify-between mb-2">
@@ -260,28 +260,30 @@
         L.circle([gzLat, gzLng], { color: '#ef4444', fillColor: '#fee2e2', fillOpacity: 0.15, weight: 2, dashArray: '5, 5', radius: 5000 }).bindTooltip("<b>Zon Infeksi / Jangkitan (5 KM)</b>").addTo(groundZeroLayer);
         L.circle([gzLat, gzLng], { color: '#f97316', fillColor: '#ffedd5', fillOpacity: 0.1, weight: 2, dashArray: '8, 8', radius: 10000 }).bindTooltip("<b>Zon Pengawasan (10 KM)</b>").addTo(groundZeroLayer);
 
-        // URL GOOGLE SHEETS
+        // =========================================================================
+        // URL PANGKALAN DATA (Google Sheets Terkini)
+        // =========================================================================
         const riskDataUrl = 'https://docs.google.com/spreadsheets/d/10CQIZ8XlP0SvDq9cwAGRf5hVMfLHd4LDi_PpIqBDsPs/export?format=csv&gid=0';
+        
+        // Helaian Aktiviti Kawalan VET/PBT
         const controlDataUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=1524998352';
+        
+        // Helaian Analisis Vet & PBT (gid=0)
         const vetAnalyticsUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=0';
         
-        // URL BARU UNTUK DATA KAWASAN OPERASI ACD (Menarik data raw sheet terus)
-        const acdDataUrl = 'https://docs.google.com/spreadsheets/d/1vq1GLhzcSpVGlPPNmxodg0ML_rweYhIRQs_oBjDo4Nw/export?format=csv&gid=1127633743';
+        // Helaian Sasaran Operasi ACD (Dalam ID workbook yang sama, dipanggil guna parameter sheet=)
+        const acdDataUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&sheet=ACD%20KKM%20Haiwan%20Tidak%20Divaksin';
+        // =========================================================================
 
-        // Index Kolum
         const riskLatIndex = 3, riskLngIndex = 4; 
-        const controlLatIndex = 4, controlLngIndex = 5, controlPosIndex = 10;
-        
-        // Index Kolum ACD: A=0, M=12, N=13, AA(Lat)=26, AB(Long)=27, AE=30
-        const acdColM = 12, acdColN = 13, acdColAE = 30, acdLat = 26, acdLng = 27;
+        const controlLatIndex = 4, controlLngIndex = 5;
 
         // Gaya Pin
         var riskDotStyle = { radius: 6, fillColor: "#ff8c00", color: "#ffffff", weight: 2, opacity: 1, fillOpacity: 0.9, pane: 'markerPane' };
         var controlDotStyle = { radius: 9, fillColor: "#00ff00", color: "#006400", weight: 2, opacity: 1, fillOpacity: 0.9, pane: 'markerPane' };
         
-        // Gaya Pin Baru
-        var acdUnvaxDotStyle = { radius: 6, fillColor: "#ef4444", color: "#7f1d1d", weight: 2, opacity: 1, fillOpacity: 0.9, pane: 'markerPane' }; // Merah
-        var acdVaxDotStyle = { radius: 6, fillColor: "#16a34a", color: "#14532d", weight: 2, opacity: 1, fillOpacity: 0.9, pane: 'markerPane' }; // Hijau Gelap
+        var acdUnvaxDotStyle = { radius: 6, fillColor: "#ef4444", color: "#7f1d1d", weight: 2, opacity: 1, fillOpacity: 0.9, pane: 'markerPane' }; // Merah (Belum Divaksin)
+        var acdVaxDotStyle = { radius: 6, fillColor: "#16a34a", color: "#14532d", weight: 2, opacity: 1, fillOpacity: 0.9, pane: 'markerPane' }; // Hijau (Selesai Divaksin)
 
         // 1. Tarik Data Risiko (Awam)
         Papa.parse(riskDataUrl, {
@@ -308,7 +310,7 @@
             }
         });
 
-        // 2. Tarik Data Kawalan & Proses Metrik
+        // 2. Tarik Data Kawalan (Aktiviti Kawalan VET/PBT) & Proses Metrik Jadual/Peta
         Papa.parse(controlDataUrl, {
             download: true, header: true, skipEmptyLines: true,
             complete: function(results) {
@@ -323,6 +325,7 @@
                 results.data.forEach((row) => {
                     let rowArray = Object.values(row); 
                     tableDataSet.push(rowArray);
+
                     let dateStr = rowArray[1]; 
                     
                     if(dateStr && dateStr.trim() !== "") {
@@ -391,7 +394,7 @@
             }
         });
 
-        // 3. Tarik Data Analisis Vet (Sheet: Vet & PBT)
+        // 3. Tarik Data Analisis Vet (Sheet: Vet & PBT) - Semua analisis dikira di sini
         Papa.parse(vetAnalyticsUrl, {
             download: true, header: false, skipEmptyLines: true,
             complete: function(results) {
@@ -407,9 +410,9 @@
                         sumVaksin += parseInt(row[3]) || 0;       // Col D
                         sumGigitManusia += parseInt(row[4]) || 0; // Col E
                         sumGigitTernakan += parseInt(row[5]) || 0;// Col F
-                        sumTangkapan += parseInt(row[6]) || 0;    // Col G
-                        sumSampel += parseInt(row[7]) || 0;       // Col H
-                        sumPositif += parseInt(row[8]) || 0;      // Col I
+                        sumTangkapan += parseInt(row[6]) || 0;    // Col G (Tangkapan)
+                        sumSampel += parseInt(row[7]) || 0;       // Col H (Persampelan)
+                        sumPositif += parseInt(row[8]) || 0;      // Col I (Positif)
                     }
                 }
 
@@ -417,66 +420,69 @@
                 let pctLiar = totalAnjing > 0 ? ((sumLiar / totalAnjing) * 100).toFixed(1) : 0;
                 let pctPeliharaan = totalAnjing > 0 ? ((sumPeliharaan / totalAnjing) * 100).toFixed(1) : 0;
 
+                let totalGigitan = sumGigitManusia + sumGigitTernakan;
+                let pctGigitManusia = totalGigitan > 0 ? ((sumGigitManusia / totalGigitan) * 100).toFixed(1) : 0;
+                let pctGigitTernakan = totalGigitan > 0 ? ((sumGigitTernakan / totalGigitan) * 100).toFixed(1) : 0;
+
+                let pctPositif = sumSampel > 0 ? ((sumPositif / sumSampel) * 100).toFixed(1) : 0;
+
+                // Paparkan ke HTML
                 document.getElementById('statLiar').innerText = `${sumLiar} (${pctLiar}%)`;
                 document.getElementById('statPeliharaan').innerText = `${sumPeliharaan} (${pctPeliharaan}%)`;
                 document.getElementById('statVaksinValue').innerText = sumVaksin;
 
-                // Hilangkan baris bawah untuk vaksinasi
-                document.getElementById('statGigitManusia').innerText = `${sumGigitManusia} (${totalGigitan > 0 ? ((sumGigitManusia / (sumGigitManusia + sumGigitTernakan)) * 100).toFixed(1) : 0}%)`;
-                document.getElementById('statGigitTernakan').innerText = `${sumGigitTernakan} (${totalGigitan > 0 ? ((sumGigitTernakan / (sumGigitManusia + sumGigitTernakan)) * 100).toFixed(1) : 0}%)`;
+                document.getElementById('statGigitManusia').innerText = `${sumGigitManusia} (${pctGigitManusia}%)`;
+                document.getElementById('statGigitTernakan').innerText = `${sumGigitTernakan} (${pctGigitTernakan}%)`;
                 
+                // Paparan Tangkapan, Sampel & Positif
                 document.getElementById('statTangkapan').innerText = sumTangkapan;
                 document.getElementById('statSampel').innerText = sumSampel;
-                document.getElementById('statPositif').innerText = `${sumPositif} (${sumSampel > 0 ? ((sumPositif / sumSampel) * 100).toFixed(1) : 0}%)`;
+                document.getElementById('statPositif').innerText = `${sumPositif} (${pctPositif}%)`;
             }
         });
 
-        // 4. Tarik Data Sasaran Operasi (ACD)
+        // 4. Tarik Data Sasaran Operasi (ACD) dari Tab "ACD KKM Haiwan Tidak Divaksin"
         Papa.parse(acdDataUrl, {
             download: true, header: false, skipEmptyLines: true,
             complete: function(results) {
                 let totalAcd = 0;
                 let totalAcdVax = 0;
 
-                // Mula dari i=1 untuk skip header
+                // Memandangkan data ini terhasil dari formula QUERY, ia terus membaca baris data yang sah
+                // Mula dari i=1 untuk abaikan baris tajuk (header)
                 for (let i = 1; i < results.data.length; i++) {
                     let row = results.data[i];
                     
-                    let colM = row[acdColM] ? row[acdColM].toLowerCase().trim() : "";
-                    let colN = row[acdColN] ? row[acdColN].toLowerCase().trim() : "";
-                    let colAE = row[acdColAE] ? row[acdColAE].toUpperCase().trim() : "";
-
-                    // Logik Tapisan seperti dalam Formula QUERY
-                    if (colM !== 'tidak' && colM !== 'tiada' && colM !== 'tidak berkenaan' && colM.includes('anjing') && colN === 'tidak') {
+                    // Semak jika baris ini ada rekod data (bukan baris kosong)
+                    if(row[12] && row[12].trim() !== "") {
                         totalAcd++;
+                        let colAE = row[30] ? row[30].toUpperCase().trim() : ""; // Kolum AE
                         let isVax = (colAE === 'SELESAI');
+                        
                         if (isVax) totalAcdVax++;
 
-                        // Plot ke Peta
-                        let lat = parseFloat(row[acdLat]);
-                        let lng = parseFloat(row[acdLng]);
+                        // Plot ke Peta berdasarkan Kolum AA(26) dan AB(27)
+                        let lat = parseFloat(row[26]); 
+                        let lng = parseFloat(row[27]); 
                         
                         if (!isNaN(lat) && !isNaN(lng)) {
                             let popupContent = `
                                 <div class="info-window-content">
                                     <h3>Data Sasaran (ACD)</h3>
                                     <strong>Status:</strong> ${isVax ? '<span style="color:green">SELESAI DIVAKSIN</span>' : '<span style="color:red">BELUM DIVAKSIN</span>'}<br>
-                                    <strong>Maklumat Haiwan:</strong> ${row[acdColM] || 'N/A'}<br>
+                                    <strong>Maklumat Haiwan:</strong> ${row[12] || 'N/A'}<br>
                                 </div>`;
 
                             let marker = L.circleMarker([lat, lng], isVax ? acdVaxDotStyle : acdUnvaxDotStyle)
                                           .bindTooltip(popupContent, {direction: 'top'});
                             
-                            if (isVax) {
-                                marker.addTo(acdVaxLayer);
-                            } else {
-                                marker.addTo(acdUnvaxLayer);
-                            }
+                            if (isVax) marker.addTo(acdVaxLayer);
+                            else marker.addTo(acdUnvaxLayer);
                         }
                     }
                 }
 
-                // Kemaskini Kad Analisis 5
+                // Kemaskini Kad Analisis ke-5 (ACD)
                 document.getElementById('statAcdTotal').innerText = totalAcd;
                 let pctVax = totalAcd > 0 ? ((totalAcdVax / totalAcd) * 100).toFixed(1) : 0;
                 document.getElementById('statAcdVax').innerText = `${totalAcdVax} (${pctVax}%)`;
@@ -490,7 +496,7 @@
         document.getElementById('toggleRisk').addEventListener('change', function() { this.checked ? map.addLayer(riskLayer) : map.removeLayer(riskLayer); });
         document.getElementById('toggleControl').addEventListener('change', function() { this.checked ? map.addLayer(controlLayer) : map.removeLayer(controlLayer); });
         
-        // Toggle baru untuk ACD
+        // Lapisan ACD
         document.getElementById('toggleAcdUnvax').addEventListener('change', function() { this.checked ? map.addLayer(acdUnvaxLayer) : map.removeLayer(acdUnvaxLayer); });
         document.getElementById('toggleAcdVax').addEventListener('change', function() { this.checked ? map.addLayer(acdVaxLayer) : map.removeLayer(acdVaxLayer); });
 
