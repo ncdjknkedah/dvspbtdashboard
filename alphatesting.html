@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Pusat Operasi & Surveilan Rabies - DVS & PBT</title>
     
-    <!-- Tailwind CSS (Untuk Rekabentuk Profesional) -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- PapaParse (Untuk baca Google Sheets) -->
+    <!-- PapaParse -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     
     <!-- jQuery & DataTables -->
@@ -16,14 +16,14 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 
-    <!-- LEAFLET CSS & JS (100% Percuma) -->
+    <!-- LEAFLET CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- Chart.js (Untuk Pie Chart) -->
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Font Asas Rasmi -->
+    <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -32,7 +32,6 @@
         .dataTables_wrapper { padding: 20px; background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-top: 20px; }
         table.dataTable thead th { background-color: #1e3a8a; color: white; }
         
-        /* Custom Leaflet Tooltip (Hover Box) */
         .leaflet-tooltip { border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); padding: 0 !important; }
         .info-window-content { font-size: 13px; color: #333; padding: 12px; }
         .info-window-content h3 { margin: 0 0 8px 0; color: #1e3a8a; font-weight: bold; border-bottom: 2px solid #fbbf24; padding-bottom: 4px; font-size: 14px;}
@@ -41,7 +40,6 @@
 </head>
 <body class="flex flex-col min-h-screen">
 
-    <!-- Header -->
     <header class="bg-blue-900 text-white shadow-md relative z-10">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <div>
@@ -55,12 +53,9 @@
         </div>
     </header>
 
-    <!-- Main Content -->
     <main class="container mx-auto px-6 py-8 flex-grow">
         
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-            
-            <!-- Panel Kawalan Peta -->
             <div class="bg-white p-6 rounded-lg shadow-md lg:col-span-1 z-10">
                 <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Kawalan Lapisan Peta</h2>
                 
@@ -80,7 +75,6 @@
                         <span class="text-gray-700 font-medium">🟢 Aktiviti Kawalan (DVS/PBT)</span>
                     </label>
 
-                    <!-- Lapisan Baru ACD (Ditukar Nama) -->
                     <label class="flex items-center space-x-3 cursor-pointer mt-4 pt-4 border-t">
                         <input type="checkbox" id="toggleAcdUnvax" checked class="form-checkbox h-5 w-5 text-red-600 rounded">
                         <span class="text-gray-700 font-medium leading-tight">🔴 Anjing Belum Divaksin<br><span class="text-xs text-gray-500">(Data ACD KKM)</span></span>
@@ -91,13 +85,11 @@
                         <span class="text-gray-700 font-medium leading-tight">🟢 Anjing Selesai Divaksin<br><span class="text-xs text-gray-500">(Data ACD KKM)</span></span>
                     </label>
 
-                    <!-- Radius Checkbox -->
                     <label class="flex items-center space-x-3 cursor-pointer mt-4 pt-4 border-t">
                         <input type="checkbox" id="toggleRadius" checked class="form-checkbox h-5 w-5 text-yellow-500 rounded">
                         <span class="text-gray-700 font-medium text-sm">⭕ Radius Kawalan (Aktiviti)</span>
                     </label>
 
-                    <!-- Slider Pelaras Radius -->
                     <div class="mt-2 pl-8">
                         <label for="radiusSlider" class="block text-xs font-bold text-gray-700 mb-2">Saiz Radius: <span id="radiusValue" class="text-blue-600">500</span> Meter</label>
                         <input type="range" id="radiusSlider" min="100" max="5000" step="100" value="500" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-yellow-500">
@@ -114,34 +106,28 @@
                 </div>
             </div>
 
-            <!-- Peta Leaflet -->
             <div class="lg:col-span-3">
                 <div id="map"></div>
             </div>
         </div>
 
-        <!-- RINGKASAN SCORE CARD & PIE CHART -->
         <div class="mb-8">
             <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Ringkasan Aduan Awam dan Aktiviti Kawalan oleh DVS & MPKP</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <!-- Card Laporan Risiko Awam -->
                 <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500">
                     <p class="text-sm text-gray-500 font-semibold uppercase">Laporan Aduan Awam</p>
                     <p class="text-4xl font-bold text-gray-800 mt-2" id="scoreRiskReports">0</p>
                 </div>
-                <!-- Card Jumlah Operasi -->
                 <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
                     <p class="text-sm text-gray-500 font-semibold uppercase">Jumlah Operasi Kawalan</p>
                     <p class="text-4xl font-bold text-gray-800 mt-2" id="scoreActivities">0</p>
                 </div>
             </div>
 
-            <!-- BAHAGIAN BARU: ANALISIS TERPERINCI VETERINAR -->
             <h3 class="text-md font-bold text-gray-700 mb-3 mt-8">Analisis Terperinci Operasi Veterinar (Data Berkumpul)</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
                 
-                <!-- Card Analisis 1: Profil Anjing -->
                 <div class="bg-indigo-50 rounded-lg shadow-sm p-5 border border-indigo-100">
                     <h4 class="text-sm font-bold text-indigo-800 mb-3 border-b border-indigo-200 pb-2">Profil Anjing Dikenalpasti</h4>
                     <div class="flex justify-between mb-2">
@@ -154,7 +140,6 @@
                     </div>
                 </div>
 
-                <!-- Card Analisis 2: Vaksinasi -->
                 <div class="bg-emerald-50 rounded-lg shadow-sm p-5 border border-emerald-100">
                     <h4 class="text-sm font-bold text-emerald-800 mb-3 border-b border-emerald-200 pb-2">Status Vaksinasi</h4>
                     <div class="flex flex-col items-center justify-center mt-1">
@@ -163,7 +148,6 @@
                     </div>
                 </div>
 
-                <!-- Card Analisis 3: Kes Gigitan -->
                 <div class="bg-rose-50 rounded-lg shadow-sm p-5 border border-rose-100">
                     <h4 class="text-sm font-bold text-rose-800 mb-3 border-b border-rose-200 pb-2">Aduan Kes Gigitan</h4>
                     <div class="flex justify-between mb-2">
@@ -176,7 +160,6 @@
                     </div>
                 </div>
 
-                <!-- Card Analisis 4: Persampelan -->
                 <div class="bg-purple-50 rounded-lg shadow-sm p-5 border border-purple-100">
                     <h4 class="text-sm font-bold text-purple-800 mb-3 border-b border-purple-200 pb-2">Tangkapan & Sampel</h4>
                     <div class="flex justify-between mb-1.5">
@@ -193,7 +176,6 @@
                     </div>
                 </div>
 
-                <!-- Card Analisis 5: Data Sasaran ACD -->
                 <div class="bg-cyan-50 rounded-lg shadow-sm p-5 border border-cyan-100">
                     <h4 class="text-sm font-bold text-cyan-800 mb-3 border-b border-cyan-200 pb-2">Data Sasaran ACD</h4>
                     <div class="flex justify-between mb-2">
@@ -208,7 +190,6 @@
 
             </div>
 
-            <!-- Pie Chart -->
             <div class="bg-white rounded-lg shadow-md p-6 mt-4">
                 <h3 class="text-md font-bold text-gray-700 mb-4 text-center">Pecahan Mengikut Jenis Aktiviti Kawalan</h3>
                 <div class="relative w-full flex justify-center" style="height: 300px;">
@@ -217,7 +198,6 @@
             </div>
         </div>
 
-        <!-- Jadual Data -->
         <div>
             <h2 class="text-xl font-bold text-gray-800 mb-2">Jadual Rekod Aktiviti Kawalan Terkini</h2>
             <table id="controlTable" class="display w-full text-sm"></table>
@@ -225,15 +205,12 @@
 
     </main>
 
-    <!-- Logik Leaflet & Data -->
     <script>
-        // Setup Peta Leaflet
         var gzLat = 6.4309278; 
         var gzLng = 100.4297083; 
         
         var map = L.map('map').setView([gzLat, gzLng], 12);
 
-        // Lapisan Peta Asas
         var osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' });
         var satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri' });
 
@@ -244,14 +221,11 @@
         var riskLayer = L.layerGroup().addTo(map);
         var controlLayer = L.layerGroup().addTo(map);
         var radiusLayer = L.layerGroup().addTo(map);
-        
-        // Lapisan Group Baru untuk ACD
         var acdUnvaxLayer = L.layerGroup().addTo(map);
         var acdVaxLayer = L.layerGroup().addTo(map);
 
         var dynamicControlCircles = [];
 
-        // Ground Zero & Radius (5KM / 10KM)
         L.circleMarker([gzLat, gzLng], {
             radius: 8, fillColor: "#dc2626", color: "#7f1d1d", weight: 3, opacity: 1, fillOpacity: 1, pane: 'markerPane'
         }).bindTooltip("<div style='padding:5px; font-weight:bold; color:red;'>📍 GROUND ZERO RABIES</div>", {permanent: true, direction: 'right', className: 'bg-transparent border-0 shadow-none'})
@@ -260,32 +234,19 @@
         L.circle([gzLat, gzLng], { color: '#ef4444', fillColor: '#fee2e2', fillOpacity: 0.15, weight: 2, dashArray: '5, 5', radius: 5000 }).bindTooltip("<b>Zon Infeksi / Jangkitan (5 KM)</b>").addTo(groundZeroLayer);
         L.circle([gzLat, gzLng], { color: '#f97316', fillColor: '#ffedd5', fillOpacity: 0.1, weight: 2, dashArray: '8, 8', radius: 10000 }).bindTooltip("<b>Zon Pengawasan (10 KM)</b>").addTo(groundZeroLayer);
 
-        // =========================================================================
-        // URL PANGKALAN DATA (Google Sheets Terkini)
-        // =========================================================================
         const riskDataUrl = 'https://docs.google.com/spreadsheets/d/10CQIZ8XlP0SvDq9cwAGRf5hVMfLHd4LDi_PpIqBDsPs/export?format=csv&gid=0';
-        
-        // Helaian Aktiviti Kawalan VET/PBT
         const controlDataUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=1524998352';
-        
-        // Helaian Analisis Vet & PBT (gid=0)
         const vetAnalyticsUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=0';
-        
-        // Helaian Sasaran Operasi ACD (Dalam ID workbook yang sama, dipanggil guna parameter sheet=)
         const acdDataUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&sheet=ACD%20KKM%20Haiwan%20Tidak%20Divaksin';
-        // =========================================================================
 
         const riskLatIndex = 3, riskLngIndex = 4; 
         const controlLatIndex = 4, controlLngIndex = 5;
 
-        // Gaya Pin
         var riskDotStyle = { radius: 6, fillColor: "#ff8c00", color: "#ffffff", weight: 2, opacity: 1, fillOpacity: 0.9, pane: 'markerPane' };
         var controlDotStyle = { radius: 9, fillColor: "#00ff00", color: "#006400", weight: 2, opacity: 1, fillOpacity: 0.9, pane: 'markerPane' };
-        
-        var acdUnvaxDotStyle = { radius: 6, fillColor: "#ef4444", color: "#7f1d1d", weight: 2, opacity: 1, fillOpacity: 0.9, pane: 'markerPane' }; // Merah (Belum Divaksin)
-        var acdVaxDotStyle = { radius: 6, fillColor: "#16a34a", color: "#14532d", weight: 2, opacity: 1, fillOpacity: 0.9, pane: 'markerPane' }; // Hijau (Selesai Divaksin)
+        var acdUnvaxDotStyle = { radius: 6, fillColor: "#ef4444", color: "#7f1d1d", weight: 2, opacity: 1, fillOpacity: 0.9, pane: 'markerPane' };
+        var acdVaxDotStyle = { radius: 6, fillColor: "#16a34a", color: "#14532d", weight: 2, opacity: 1, fillOpacity: 0.9, pane: 'markerPane' };
 
-        // 1. Tarik Data Risiko (Awam)
         Papa.parse(riskDataUrl, {
             download: true, header: false, skipEmptyLines: true,
             complete: function(results) {
@@ -310,7 +271,6 @@
             }
         });
 
-        // 2. Tarik Data Kawalan (Aktiviti Kawalan VET/PBT) & Proses Metrik Jadual/Peta
         Papa.parse(controlDataUrl, {
             download: true, header: true, skipEmptyLines: true,
             complete: function(results) {
@@ -361,7 +321,6 @@
                 document.getElementById('scoreActivities').innerText = totalActivities;
                 document.getElementById('lastUpdatedDate').innerText = "Tarikh Kemaskini: " + latestDateString;
 
-                // JANA PIE CHART
                 let ctx = document.getElementById('activityPieChart').getContext('2d');
                 new Chart(ctx, {
                     type: 'pie',
@@ -376,7 +335,6 @@
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { family: 'Inter' } } } } }
                 });
 
-                // Bina Jadual
                 let tableHeaders = headers.map(header => { return { title: header || "Kolum" } });
                 $('#controlTable').DataTable({
                     data: tableDataSet,
@@ -394,7 +352,6 @@
             }
         });
 
-        // 3. Tarik Data Analisis Vet (Sheet: Vet & PBT) - Semua analisis dikira di sini
         Papa.parse(vetAnalyticsUrl, {
             download: true, header: false, skipEmptyLines: true,
             complete: function(results) {
@@ -405,14 +362,14 @@
                 for (let i = 4; i < results.data.length; i++) {
                     let row = results.data[i];
                     if(row[0] && row[0].trim() !== "") { 
-                        sumLiar += parseInt(row[1]) || 0;         // Col B
-                        sumPeliharaan += parseInt(row[2]) || 0;   // Col C
-                        sumVaksin += parseInt(row[3]) || 0;       // Col D
-                        sumGigitManusia += parseInt(row[4]) || 0; // Col E
-                        sumGigitTernakan += parseInt(row[5]) || 0;// Col F
-                        sumTangkapan += parseInt(row[6]) || 0;    // Col G (Tangkapan)
-                        sumSampel += parseInt(row[7]) || 0;       // Col H (Persampelan)
-                        sumPositif += parseInt(row[8]) || 0;      // Col I (Positif)
+                        sumLiar += parseInt(row[1]) || 0;
+                        sumPeliharaan += parseInt(row[2]) || 0;
+                        sumVaksin += parseInt(row[3]) || 0;
+                        sumGigitManusia += parseInt(row[4]) || 0;
+                        sumGigitTernakan += parseInt(row[5]) || 0;
+                        sumTangkapan += parseInt(row[6]) || 0;
+                        sumSampel += parseInt(row[7]) || 0;
+                        sumPositif += parseInt(row[8]) || 0;
                     }
                 }
 
@@ -426,7 +383,6 @@
 
                 let pctPositif = sumSampel > 0 ? ((sumPositif / sumSampel) * 100).toFixed(1) : 0;
 
-                // Paparkan ke HTML
                 document.getElementById('statLiar').innerText = `${sumLiar} (${pctLiar}%)`;
                 document.getElementById('statPeliharaan').innerText = `${sumPeliharaan} (${pctPeliharaan}%)`;
                 document.getElementById('statVaksinValue').innerText = sumVaksin;
@@ -434,43 +390,40 @@
                 document.getElementById('statGigitManusia').innerText = `${sumGigitManusia} (${pctGigitManusia}%)`;
                 document.getElementById('statGigitTernakan').innerText = `${sumGigitTernakan} (${pctGigitTernakan}%)`;
                 
-                // Paparan Tangkapan, Sampel & Positif
                 document.getElementById('statTangkapan').innerText = sumTangkapan;
                 document.getElementById('statSampel').innerText = sumSampel;
                 document.getElementById('statPositif').innerText = `${sumPositif} (${pctPositif}%)`;
             }
         });
 
-        // 4. Tarik Data Sasaran Operasi (ACD) dari Tab "ACD KKM Haiwan Tidak Divaksin"
         Papa.parse(acdDataUrl, {
             download: true, header: false, skipEmptyLines: true,
             complete: function(results) {
                 let totalAcd = 0;
                 let totalAcdVax = 0;
 
-                // Memandangkan data ini terhasil dari formula QUERY, ia terus membaca baris data yang sah
-                // Mula dari i=1 untuk abaikan baris tajuk (header)
                 for (let i = 1; i < results.data.length; i++) {
                     let row = results.data[i];
                     
-                    // Semak jika baris ini ada rekod data (bukan baris kosong)
+                    // Kita tidak menggunakan tapisan JavaScript kerana Google Sheet 'ACD KKM...' 
+                    // telah disaring siap-siap. Kita hanya kira mana-mana baris yang sah.
                     if(row[12] && row[12].trim() !== "") {
                         totalAcd++;
-                        let colAE = row[30] ? row[30].toUpperCase().trim() : ""; // Kolum AE
+                        
+                        let colAE = row[30] ? row[30].toUpperCase().trim() : ""; 
                         let isVax = (colAE === 'SELESAI');
                         
                         if (isVax) totalAcdVax++;
 
-                        // Plot ke Peta berdasarkan Kolum AA(26) dan AB(27)
-                        let lat = parseFloat(row[26]); 
-                        let lng = parseFloat(row[27]); 
+                        let lat = row[26] ? parseFloat(row[26]) : NaN; 
+                        let lng = row[27] ? parseFloat(row[27]) : NaN; 
                         
                         if (!isNaN(lat) && !isNaN(lng)) {
                             let popupContent = `
                                 <div class="info-window-content">
                                     <h3>Data Sasaran (ACD)</h3>
                                     <strong>Status:</strong> ${isVax ? '<span style="color:green">SELESAI DIVAKSIN</span>' : '<span style="color:red">BELUM DIVAKSIN</span>'}<br>
-                                    <strong>Maklumat Haiwan:</strong> ${row[12] || 'N/A'}<br>
+                                    <strong>Maklumat Haiwan:</strong> ${row[12] || 'Tiada Maklumat'}<br>
                                 </div>`;
 
                             let marker = L.circleMarker([lat, lng], isVax ? acdVaxDotStyle : acdUnvaxDotStyle)
@@ -482,21 +435,16 @@
                     }
                 }
 
-                // Kemaskini Kad Analisis ke-5 (ACD)
                 document.getElementById('statAcdTotal').innerText = totalAcd;
                 let pctVax = totalAcd > 0 ? ((totalAcdVax / totalAcd) * 100).toFixed(1) : 0;
                 document.getElementById('statAcdVax').innerText = `${totalAcdVax} (${pctVax}%)`;
             }
         });
 
-        // ---------------------------------------------------------
-        // LOGIK EVENT LISTENER (CHECKBOX & SLIDER)
-        // ---------------------------------------------------------
         document.getElementById('toggleGroundZero').addEventListener('change', function() { this.checked ? map.addLayer(groundZeroLayer) : map.removeLayer(groundZeroLayer); });
         document.getElementById('toggleRisk').addEventListener('change', function() { this.checked ? map.addLayer(riskLayer) : map.removeLayer(riskLayer); });
         document.getElementById('toggleControl').addEventListener('change', function() { this.checked ? map.addLayer(controlLayer) : map.removeLayer(controlLayer); });
         
-        // Lapisan ACD
         document.getElementById('toggleAcdUnvax').addEventListener('change', function() { this.checked ? map.addLayer(acdUnvaxLayer) : map.removeLayer(acdUnvaxLayer); });
         document.getElementById('toggleAcdVax').addEventListener('change', function() { this.checked ? map.addLayer(acdVaxLayer) : map.removeLayer(acdVaxLayer); });
 
