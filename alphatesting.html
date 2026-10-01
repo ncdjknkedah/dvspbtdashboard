@@ -46,7 +46,7 @@
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <div>
                 <h1 class="text-2xl font-bold tracking-wider">DASHBOARD SURVEILAN & KAWALAN RABIES</h1>
-                <p class="text-sm text-blue-200 mt-1">Jabatan Perkhidmatan Veterinar & Pihak Berkuasa Tempatan</p>
+                <p class="text-sm text-blue-200 mt-1">Jabatan Perkhidmatan Veterinar Negeri Kedah & Majlis Perbandaran Kubang Pasu (MPKP)</p>
             </div>
             <div class="text-right">
                 <span class="bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide border border-white">Status Wabak: Terkawal</span>
@@ -113,7 +113,7 @@
         <div class="mb-8">
             <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Ringkasan Aduan Awam dan Aktiviti Kawalan oleh DVS & MPKP</h2>
             
-            <!-- Ditukar kepada 4 kolum (md:grid-cols-2 lg:grid-cols-4) supaya 4 kad nampak seimbang -->
+            <!-- 4 Kad Asas (Telah Sedia Ada) -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
                 <!-- Card Baru: Laporan Risiko Awam -->
                 <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500">
@@ -127,18 +127,77 @@
                 </div>
                 <!-- Card 2 -->
                 <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-500">
-                    <p class="text-sm text-gray-500 font-semibold uppercase">Jumlah Tangkapan Haiwan</p>
+                    <p class="text-sm text-gray-500 font-semibold uppercase">Tangkapan (Log Aktiviti)</p>
                     <p class="text-4xl font-bold text-gray-800 mt-2" id="scoreCaptures">0</p>
                 </div>
                 <!-- Card 3 -->
                 <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
-                    <p class="text-sm text-gray-500 font-semibold uppercase">Sampel Positif Rabies</p>
+                    <p class="text-sm text-gray-500 font-semibold uppercase">Sampel Positif (Log)</p>
                     <p class="text-4xl font-bold text-gray-800 mt-2" id="scorePositive">0</p>
                 </div>
             </div>
 
+            <!-- BAHAGIAN BARU: ANALISIS TERPERINCI VETERINAR (Dari Sheet Vet & PBT) -->
+            <h3 class="text-md font-bold text-gray-700 mb-3 mt-8">Analisis Terperinci Operasi Veterinar (Data Berkumpul)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                
+                <!-- Card Analisis 1: Profil Anjing -->
+                <div class="bg-indigo-50 rounded-lg shadow-sm p-5 border border-indigo-100">
+                    <h4 class="text-sm font-bold text-indigo-800 mb-3 border-b border-indigo-200 pb-2">Profil Anjing Dikenalpasti</h4>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-xs text-gray-600 font-semibold">Liar:</span>
+                        <span class="text-sm font-bold text-gray-900" id="statLiar">0 (0%)</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-xs text-gray-600 font-semibold">Peliharaan:</span>
+                        <span class="text-sm font-bold text-gray-900" id="statPeliharaan">0 (0%)</span>
+                    </div>
+                </div>
+
+                <!-- Card Analisis 2: Vaksinasi -->
+                <div class="bg-emerald-50 rounded-lg shadow-sm p-5 border border-emerald-100">
+                    <h4 class="text-sm font-bold text-emerald-800 mb-3 border-b border-emerald-200 pb-2">Status Vaksinasi</h4>
+                    <div class="flex flex-col items-center justify-center mt-1">
+                        <span class="text-3xl font-bold text-emerald-600" id="statVaksinValue">0</span>
+                        <span class="text-[11px] text-emerald-800 font-bold mt-1 uppercase">Anjing Divaksin</span>
+                        <span class="text-[10px] text-gray-500 mt-1">Liputan: <span id="statVaksinPct" class="font-bold text-gray-700">0%</span> (drpd Peliharaan)</span>
+                    </div>
+                </div>
+
+                <!-- Card Analisis 3: Kes Gigitan -->
+                <div class="bg-rose-50 rounded-lg shadow-sm p-5 border border-rose-100">
+                    <h4 class="text-sm font-bold text-rose-800 mb-3 border-b border-rose-200 pb-2">Aduan Kes Gigitan</h4>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-xs text-gray-600 font-semibold">Manusia:</span>
+                        <span class="text-sm font-bold text-gray-900" id="statGigitManusia">0 (0%)</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-xs text-gray-600 font-semibold">Ternakan:</span>
+                        <span class="text-sm font-bold text-gray-900" id="statGigitTernakan">0 (0%)</span>
+                    </div>
+                </div>
+
+                <!-- Card Analisis 4: Persampelan -->
+                <div class="bg-purple-50 rounded-lg shadow-sm p-5 border border-purple-100">
+                    <h4 class="text-sm font-bold text-purple-800 mb-3 border-b border-purple-200 pb-2">Tangkapan & Sampel</h4>
+                    <div class="flex justify-between mb-1.5">
+                        <span class="text-xs text-gray-600 font-semibold">Tangkapan:</span>
+                        <span class="text-sm font-bold text-gray-900" id="statTangkapan">0</span>
+                    </div>
+                    <div class="flex justify-between mb-1.5">
+                        <span class="text-xs text-gray-600 font-semibold">Persampelan:</span>
+                        <span class="text-sm font-bold text-gray-900" id="statSampel">0</span>
+                    </div>
+                    <div class="flex justify-between mt-2 pt-2 border-t border-purple-200">
+                        <span class="text-xs text-red-600 font-bold">Positif Rabies:</span>
+                        <span class="text-sm font-bold text-red-600" id="statPositif">0 (0%)</span>
+                    </div>
+                </div>
+
+            </div>
+
             <!-- Pie Chart -->
-            <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="bg-white rounded-lg shadow-md p-6 mt-4">
                 <h3 class="text-md font-bold text-gray-700 mb-4 text-center">Pecahan Mengikut Jenis Aktiviti Kawalan</h3>
                 <div class="relative w-full flex justify-center" style="height: 300px;">
                     <canvas id="activityPieChart"></canvas>
@@ -188,6 +247,9 @@
         // URL GOOGLE SHEETS
         const riskDataUrl = 'https://docs.google.com/spreadsheets/d/10CQIZ8XlP0SvDq9cwAGRf5hVMfLHd4LDi_PpIqBDsPs/export?format=csv&gid=0';
         const controlDataUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=1524998352';
+        
+        // URL BARU UNTUK ANALISIS VET (gid=0)
+        const vetAnalyticsUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=0';
 
         const riskLatIndex = 3, riskLngIndex = 4; 
         const controlLatIndex = 4, controlLngIndex = 5, controlPosIndex = 10; // K=10
@@ -199,14 +261,11 @@
         Papa.parse(riskDataUrl, {
             download: true, header: false, skipEmptyLines: true,
             complete: function(results) {
-                let totalRiskReports = 0; // Pengira untuk aduan awam
-
+                let totalRiskReports = 0; 
                 for (let i = 1; i < results.data.length; i++) {
-                    // Kira aduan jika Kolum A (index 0) mempunyai data / tidak kosong
                     if (results.data[i][0] && results.data[i][0].trim() !== "") {
                         totalRiskReports++;
                     }
-
                     let lat = parseFloat(results.data[i][riskLatIndex]);
                     let lng = parseFloat(results.data[i][riskLngIndex]);
                     if (!isNaN(lat) && !isNaN(lng)) {
@@ -219,8 +278,6 @@
                         L.circleMarker([lat, lng], riskDotStyle).bindTooltip(popupContent, {direction: 'top'}).addTo(riskLayer);
                     }
                 }
-                
-                // Kemaskini Score Card Aduan Awam
                 document.getElementById('scoreRiskReports').innerText = totalRiskReports;
             }
         });
@@ -238,18 +295,16 @@
                 let activityTypesCount = {};
                 
                 let latestDateString = "Tiada Maklumat";
-                
                 let initialRadius = parseInt(document.getElementById('radiusSlider').value);
 
                 results.data.forEach((row) => {
                     let rowArray = Object.values(row); 
                     tableDataSet.push(rowArray);
 
-                    let dateStr = rowArray[1]; // Kolum B (Tarikh)
+                    let dateStr = rowArray[1]; 
                     
                     if(dateStr && dateStr.trim() !== "") {
                         totalActivities++;
-                        
                         let captures = parseInt(rowArray[7]) || 0; 
                         let positive = parseInt(rowArray[controlPosIndex]) || 0; 
                         
@@ -258,12 +313,9 @@
 
                         let actType = rowArray[6] ? rowArray[6].trim() : "Lain-lain / Tidak Dinyatakan";
                         activityTypesCount[actType] = (activityTypesCount[actType] || 0) + 1;
-
-                        // Mengambil terus data tertulis dari baris terakhir tanpa mengira formatnya
                         latestDateString = dateStr.trim();
                     }
 
-                    // Plot ke Peta
                     let lat = parseFloat(rowArray[controlLatIndex]);
                     let lng = parseFloat(rowArray[controlLngIndex]);
 
@@ -283,12 +335,10 @@
                             color: '#eab308', fillColor: '#fef08a', fillOpacity: 0.2, radius: initialRadius, interactive: false 
                         });
                         dynamicCircle.addTo(radiusLayer);
-                        
                         dynamicControlCircles.push(dynamicCircle);
                     }
                 });
 
-                // UPDATE UI DOM
                 document.getElementById('scoreActivities').innerText = totalActivities;
                 document.getElementById('scoreCaptures').innerText = totalCaptures;
                 document.getElementById('scorePositive').innerText = totalPositive;
@@ -309,7 +359,7 @@
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { family: 'Inter' } } } } }
                 });
 
-                // Bina Jadual DataTables
+                // Bina Jadual
                 let tableHeaders = headers.map(header => { return { title: header || "Kolum" } });
                 $('#controlTable').DataTable({
                     data: tableDataSet,
@@ -324,6 +374,60 @@
                         emptyTable: "Data sedang dimuat turun atau tiada rekod dijumpai."
                     }
                 });
+            }
+        });
+
+        // 3. Tarik Data Analisis Vet (Sheet: Vet & PBT)
+        Papa.parse(vetAnalyticsUrl, {
+            download: true, header: false, skipEmptyLines: true,
+            complete: function(results) {
+                let sumLiar = 0, sumPeliharaan = 0, sumVaksin = 0;
+                let sumGigitManusia = 0, sumGigitTernakan = 0;
+                let sumTangkapan = 0, sumSampel = 0, sumPositif = 0;
+
+                // Mula dari index 4 (baris ke-5 dalam Excel - Data sebenar bermula)
+                for (let i = 4; i < results.data.length; i++) {
+                    let row = results.data[i];
+                    
+                    // Pastikan ruangan Tarikh (Kolum A) ada isi sebelum ditambah
+                    if(row[0] && row[0].trim() !== "") { 
+                        sumLiar += parseInt(row[1]) || 0;         // Col B
+                        sumPeliharaan += parseInt(row[2]) || 0;   // Col C
+                        sumVaksin += parseInt(row[3]) || 0;       // Col D
+                        sumGigitManusia += parseInt(row[4]) || 0; // Col E
+                        sumGigitTernakan += parseInt(row[5]) || 0;// Col F
+                        sumTangkapan += parseInt(row[6]) || 0;    // Col G
+                        sumSampel += parseInt(row[7]) || 0;       // Col H
+                        sumPositif += parseInt(row[8]) || 0;      // Col I
+                    }
+                }
+
+                // Kira Peratusan
+                let totalAnjing = sumLiar + sumPeliharaan;
+                let pctLiar = totalAnjing > 0 ? ((sumLiar / totalAnjing) * 100).toFixed(1) : 0;
+                let pctPeliharaan = totalAnjing > 0 ? ((sumPeliharaan / totalAnjing) * 100).toFixed(1) : 0;
+
+                let pctVaksin = sumPeliharaan > 0 ? ((sumVaksin / sumPeliharaan) * 100).toFixed(1) : 0;
+
+                let totalGigitan = sumGigitManusia + sumGigitTernakan;
+                let pctGigitManusia = totalGigitan > 0 ? ((sumGigitManusia / totalGigitan) * 100).toFixed(1) : 0;
+                let pctGigitTernakan = totalGigitan > 0 ? ((sumGigitTernakan / totalGigitan) * 100).toFixed(1) : 0;
+
+                let pctPositif = sumSampel > 0 ? ((sumPositif / sumSampel) * 100).toFixed(1) : 0;
+
+                // Paparkan ke HTML
+                document.getElementById('statLiar').innerText = `${sumLiar} (${pctLiar}%)`;
+                document.getElementById('statPeliharaan').innerText = `${sumPeliharaan} (${pctPeliharaan}%)`;
+                
+                document.getElementById('statVaksinValue').innerText = sumVaksin;
+                document.getElementById('statVaksinPct').innerText = `${pctVaksin}%`;
+
+                document.getElementById('statGigitManusia').innerText = `${sumGigitManusia} (${pctGigitManusia}%)`;
+                document.getElementById('statGigitTernakan').innerText = `${sumGigitTernakan} (${pctGigitTernakan}%)`;
+                
+                document.getElementById('statTangkapan').innerText = sumTangkapan;
+                document.getElementById('statSampel').innerText = sumSampel;
+                document.getElementById('statPositif').innerText = `${sumPositif} (${pctPositif}%)`;
             }
         });
 
