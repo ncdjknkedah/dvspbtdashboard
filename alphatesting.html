@@ -20,9 +20,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
@@ -56,6 +53,7 @@
     <main class="container mx-auto px-6 py-8 flex-grow">
         
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+            
             <div class="bg-white p-6 rounded-lg shadow-md lg:col-span-1 z-10">
                 <h2 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Kawalan Lapisan Peta</h2>
                 
@@ -115,13 +113,25 @@
             <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Ringkasan Aduan Awam dan Aktiviti Kawalan oleh DVS & MPKP</h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500">
+                <!-- Card Laporan Risiko Awam -->
+                <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500 flex flex-col justify-center">
                     <p class="text-sm text-gray-500 font-semibold uppercase">Laporan Aduan Awam</p>
                     <p class="text-4xl font-bold text-gray-800 mt-2" id="scoreRiskReports">0</p>
                 </div>
+                
+                <!-- Card Jumlah Operasi Kawalan (Dikemaskini) -->
                 <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
                     <p class="text-sm text-gray-500 font-semibold uppercase">Jumlah Operasi Kawalan</p>
-                    <p class="text-4xl font-bold text-gray-800 mt-2" id="scoreActivities">0</p>
+                    <p class="text-4xl font-bold text-gray-800 mt-2 mb-3" id="scoreActivities">0</p>
+                    
+                    <div class="flex justify-between border-t border-gray-100 pt-2 mb-1">
+                        <span class="text-xs text-gray-600 font-semibold">Dgn Tangkapan:</span>
+                        <span class="text-sm font-bold text-gray-900" id="scoreWithCapture">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-xs text-gray-600 font-semibold">Tanpa Tangkapan:</span>
+                        <span class="text-sm font-bold text-gray-900" id="scoreWithoutCapture">0</span>
+                    </div>
                 </div>
             </div>
 
@@ -188,13 +198,6 @@
                     </div>
                 </div>
 
-            </div>
-
-            <div class="bg-white rounded-lg shadow-md p-6 mt-4">
-                <h3 class="text-md font-bold text-gray-700 mb-4 text-center">Pecahan Mengikut Jenis Aktiviti Kawalan</h3>
-                <div class="relative w-full flex justify-center" style="height: 300px;">
-                    <canvas id="activityPieChart"></canvas>
-                </div>
             </div>
         </div>
 
@@ -278,7 +281,9 @@
                 let headers = results.meta.fields;
 
                 let totalActivities = 0;
-                let activityTypesCount = {};
+                let activitiesWithCapture = 0;
+                let activitiesWithoutCapture = 0;
+
                 let latestDateString = "Tiada Maklumat";
                 let initialRadius = parseInt(document.getElementById('radiusSlider').value);
 
@@ -290,8 +295,14 @@
                     
                     if(dateStr && dateStr.trim() !== "") {
                         totalActivities++;
-                        let actType = rowArray[6] ? rowArray[6].trim() : "Lain-lain / Tidak Dinyatakan";
-                        activityTypesCount[actType] = (activityTypesCount[actType] || 0) + 1;
+
+                        let tangkapan = parseInt(rowArray[7]) || 0;
+                        if(tangkapan > 0) {
+                            activitiesWithCapture++;
+                        } else {
+                            activitiesWithoutCapture++;
+                        }
+
                         latestDateString = dateStr.trim();
                     }
 
@@ -319,21 +330,9 @@
                 });
 
                 document.getElementById('scoreActivities').innerText = totalActivities;
+                document.getElementById('scoreWithCapture').innerText = activitiesWithCapture;
+                document.getElementById('scoreWithoutCapture').innerText = activitiesWithoutCapture;
                 document.getElementById('lastUpdatedDate').innerText = "Tarikh Kemaskini: " + latestDateString;
-
-                let ctx = document.getElementById('activityPieChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'pie',
-                    data: {
-                        labels: Object.keys(activityTypesCount),
-                        datasets: [{
-                            data: Object.values(activityTypesCount),
-                            backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6b7280'],
-                            borderWidth: 1, borderColor: '#ffffff'
-                        }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { family: 'Inter' } } } } }
-                });
 
                 let tableHeaders = headers.map(header => { return { title: header || "Kolum" } });
                 $('#controlTable').DataTable({
@@ -405,8 +404,7 @@
                 for (let i = 1; i < results.data.length; i++) {
                     let row = results.data[i];
                     
-                    // Kita tidak menggunakan tapisan JavaScript kerana Google Sheet 'ACD KKM...' 
-                    // telah disaring siap-siap. Kita hanya kira mana-mana baris yang sah.
+                    // Baca SEMUA data yang muncul (Syarat: asalkan Kolum M ada rekod)
                     if(row[12] && row[12].trim() !== "") {
                         totalAcd++;
                         
