@@ -247,19 +247,19 @@
 
         var dynamicControlCircles = [];
 
+        // Ground zero dan radius ditambahkan tanpa teks/tooltip
         L.circleMarker([gzLat, gzLng], {
             radius: 8, fillColor: "#dc2626", color: "#7f1d1d", weight: 3, opacity: 1, fillOpacity: 1, pane: 'markerPane'
-        }).bindTooltip("<div style='padding:5px; font-weight:bold; color:red;'>📍 GROUND ZERO RABIES</div>", {permanent: true, direction: 'right', className: 'bg-transparent border-0 shadow-none'})
-          .addTo(groundZeroLayer);
+        }).addTo(groundZeroLayer);
 
-        L.circle([gzLat, gzLng], { color: '#ef4444', fillColor: '#fee2e2', fillOpacity: 0.15, weight: 2, dashArray: '5, 5', radius: 5000 }).bindTooltip("<b>Zon Infeksi / Jangkitan (5 KM)</b>").addTo(groundZeroLayer);
-        L.circle([gzLat, gzLng], { color: '#f97316', fillColor: '#ffedd5', fillOpacity: 0.1, weight: 2, dashArray: '8, 8', radius: 10000 }).bindTooltip("<b>Zon Pengawasan (10 KM)</b>").addTo(groundZeroLayer);
+        L.circle([gzLat, gzLng], { color: '#ef4444', fillColor: '#fee2e2', fillOpacity: 0.15, weight: 2, dashArray: '5, 5', radius: 5000 }).addTo(groundZeroLayer);
+        L.circle([gzLat, gzLng], { color: '#f97316', fillColor: '#ffedd5', fillOpacity: 0.1, weight: 2, dashArray: '8, 8', radius: 10000 }).addTo(groundZeroLayer);
 
         const riskDataUrl = 'https://docs.google.com/spreadsheets/d/10CQIZ8XlP0SvDq9cwAGRf5hVMfLHd4LDi_PpIqBDsPs/export?format=csv&gid=0';
         const controlDataUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=1524998352';
         const vetAnalyticsUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=0';
         
-        // TELAH DIKEMASKINI DENGAN GID SEBENAR: 81933549
+        // GID SEBENAR ACD KKM Haiwan Tidak Divaksin
         const acdDataUrl = 'https://docs.google.com/spreadsheets/d/1wmPvJzYtGlXbeO7mmbujvLDmowrL-ZMknRxHom6WB5A/export?format=csv&gid=81933549';
 
         const riskLatIndex = 3, riskLngIndex = 4; 
@@ -424,7 +424,6 @@
                 for (let i = 1; i < results.data.length; i++) {
                     let row = results.data[i];
                     
-                    // Baca data selagi kolum M (index 12) ada sebarang rekod
                     if(row[12] && row[12].trim() !== "") {
                         totalAcd++;
                         
@@ -440,8 +439,10 @@
                             let popupContent = `
                                 <div class="info-window-content">
                                     <h3>Data Sasaran (ACD)</h3>
-                                    <strong>Status:</strong> ${isVax ? '<span style="color:green">SELESAI DIVAKSIN</span>' : '<span style="color:red">BELUM DIVAKSIN</span>'}<br>
+                                    <strong>Nama Penghuni:</strong> ${row[7] || 'Tiada Maklumat'}<br>
+                                    <strong>No. Telefon:</strong> ${row[9] || 'Tiada Maklumat'}<br>
                                     <strong>Maklumat Haiwan:</strong> ${row[12] || 'Tiada Maklumat'}<br>
+                                    <strong>Status:</strong> ${isVax ? '<span style="color:green">SELESAI DIVAKSIN</span>' : '<span style="color:red">BELUM DIVAKSIN</span>'}
                                 </div>`;
 
                             let marker = L.circleMarker([lat, lng], isVax ? acdVaxDotStyle : acdUnvaxDotStyle)
